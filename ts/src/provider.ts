@@ -53,7 +53,7 @@ export default class Provider {
       url ?? "http://localhost:8899",
       opts.preflightCommitment
     );
-    const NodeWallet = require("./nodewallet.js").default;
+    const NodeWallet = require("./wallet.js").NodeWallet;
     const wallet = NodeWallet.local();
     return new Provider(connection, wallet, opts);
   }
@@ -76,7 +76,7 @@ export default class Provider {
     }
     const options = Provider.defaultOptions();
     const connection = new Connection(url, options.commitment);
-    const NodeWallet = require("./nodewallet.js").default;
+    const NodeWallet = require("./wallet.js").NodeWallet;
     const wallet = NodeWallet.local();
 
     return new Provider(connection, wallet, options);
