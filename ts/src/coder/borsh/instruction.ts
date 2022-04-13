@@ -106,6 +106,7 @@ export class BorshInstructionCoder implements InstructionCoder {
           );
         });
         const name = camelCase(m.name);
+        // @ts-ignore
         return [name, borsh.struct(fieldLayouts, name)];
       })
       .concat(
@@ -117,6 +118,7 @@ export class BorshInstructionCoder implements InstructionCoder {
             )
           );
           const name = camelCase(ix.name);
+          // @ts-ignore
           return [name, borsh.struct(fieldLayouts, name)];
         })
       );
