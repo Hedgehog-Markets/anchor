@@ -1,11 +1,13 @@
 import * as BufferLayout from "buffer-layout";
-import { publicKey, uint64, coption, bool } from "./buffer-layout.js";
+import * as borsh from "@project-serum/borsh";
+import { coption } from "./buffer-layout.js";
 import { AccountsCoder } from "../index.js";
 import { Idl, IdlTypeDef } from "../../idl.js";
 import { accountSize } from "../common";
 
 export class SplTokenAccountsCoder<A extends string = string>
-  implements AccountsCoder {
+  implements AccountsCoder
+{
   constructor(private idl: Idl) {}
 
   public async encode<T = any>(accountName: A, account: T): Promise<Buffer> {
@@ -77,20 +79,20 @@ function decodeTokenAccount<T = any>(ix: Buffer): T {
 }
 
 const MINT_ACCOUNT_LAYOUT = BufferLayout.struct([
-  coption(publicKey(), "mintAuthority"),
-  uint64("supply"),
+  coption(borsh.publicKey(), "mintAuthority"),
+  borsh.u64("supply"),
   BufferLayout.u8("decimals"),
-  bool("isInitialized"),
-  coption(publicKey(), "freezeAuthority"),
+  borsh.bool("isInitialized"),
+  coption(borsh.publicKey(), "freezeAuthority"),
 ]);
 
 const TOKEN_ACCOUNT_LAYOUT = BufferLayout.struct([
-  publicKey("mint"),
-  publicKey("authority"),
-  uint64("amount"),
-  coption(publicKey(), "delegate"),
+  borsh.publicKey("mint"),
+  borsh.publicKey("authority"),
+  borsh.u64("amount"),
+  coption(borsh.publicKey(), "delegate"),
   BufferLayout.u8("state"),
-  coption(uint64(), "isNative"),
-  uint64("delegatedAmount"),
-  coption(publicKey(), "closeAuthority"),
+  coption(borsh.u64(), "isNative"),
+  borsh.u64("delegatedAmount"),
+  coption(borsh.publicKey(), "closeAuthority"),
 ]);

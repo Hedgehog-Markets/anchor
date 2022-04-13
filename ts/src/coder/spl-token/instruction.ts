@@ -1,4 +1,5 @@
 import * as BufferLayout from "buffer-layout";
+import * as borsh from "@project-serum/borsh";
 import camelCase from "camelcase";
 import { PublicKey } from "@solana/web3.js";
 import { InstructionCoder } from "../index.js";
@@ -229,9 +230,9 @@ LAYOUT.addVariant(
   0,
   BufferLayout.struct([
     BufferLayout.u8("decimals"),
-    BufferLayout.blob(32, "mintAuthority"),
+    borsh.publicKey("mintAuthority"),
     BufferLayout.u8("freezeAuthorityOption"),
-    publicKey("freezeAuthority"),
+    borsh.publicKey("freezeAuthority"),
   ]),
   "initializeMint"
 );
@@ -241,80 +242,52 @@ LAYOUT.addVariant(
   BufferLayout.struct([BufferLayout.u8("m")]),
   "initializeMultisig"
 );
-LAYOUT.addVariant(
-  3,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "transfer"
-);
-LAYOUT.addVariant(
-  4,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "approve"
-);
+LAYOUT.addVariant(3, BufferLayout.struct([borsh.u64("amount")]), "transfer");
+LAYOUT.addVariant(4, BufferLayout.struct([borsh.u64("amount")]), "approve");
 LAYOUT.addVariant(5, BufferLayout.struct([]), "revoke");
 LAYOUT.addVariant(
   6,
   BufferLayout.struct([
     BufferLayout.u8("authorityType"),
     BufferLayout.u8("newAuthorityOption"),
-    publicKey("newAuthority"),
+    borsh.publicKey("newAuthority"),
   ]),
   "setAuthority"
 );
-LAYOUT.addVariant(
-  7,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "mintTo"
-);
-LAYOUT.addVariant(
-  8,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "burn"
-);
+LAYOUT.addVariant(7, BufferLayout.struct([borsh.u64("amount")]), "mintTo");
+LAYOUT.addVariant(8, BufferLayout.struct([borsh.u64("amount")]), "burn");
 LAYOUT.addVariant(9, BufferLayout.struct([]), "closeAccount");
 LAYOUT.addVariant(10, BufferLayout.struct([]), "freezeAccount");
 LAYOUT.addVariant(11, BufferLayout.struct([]), "thawAccount");
 LAYOUT.addVariant(
   12,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "transferChecked"
 );
 LAYOUT.addVariant(
   13,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "approvedChecked"
 );
 LAYOUT.addVariant(
   14,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "mintToChecked"
 );
 LAYOUT.addVariant(
   15,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "burnedChecked"
 );
 LAYOUT.addVariant(
   16,
-  BufferLayout.struct([publicKey("authority")]),
+  BufferLayout.struct([borsh.publicKey("authority")]),
   "InitializeAccount2"
 );
 LAYOUT.addVariant(17, BufferLayout.struct([]), "syncNative");
 LAYOUT.addVariant(
   18,
-  BufferLayout.struct([publicKey("authority")]),
+  BufferLayout.struct([borsh.publicKey("authority")]),
   "initializeAccount3"
 );
 LAYOUT.addVariant(
@@ -326,16 +299,12 @@ LAYOUT.addVariant(
   20,
   BufferLayout.struct([
     BufferLayout.u8("decimals"),
-    publicKey("mintAuthority"),
+    borsh.publicKey("mintAuthority"),
     BufferLayout.u8("freezeAuthorityOption"),
-    publicKey("freezeAuthority"),
+    borsh.publicKey("freezeAuthority"),
   ]),
   "initializeMint2"
 );
-
-function publicKey(property: string): any {
-  return BufferLayout.blob(32, property);
-}
 
 function encodeData(instruction: any): Buffer {
   let b = Buffer.alloc(instructionMaxSpan);
