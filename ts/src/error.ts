@@ -207,10 +207,10 @@ export class ProgramError extends Error {
 
   constructor(
     readonly code: number,
-    readonly msg: string,
+    msg: string,
     readonly logs?: string[]
   ) {
-    super();
+    super(msg);
     if (logs) {
       this._programErrorStack = ProgramErrorStack.parse(logs);
     }
@@ -262,6 +262,10 @@ export class ProgramError extends Error {
     return null;
   }
 
+  get msg(): string {
+    return this.message;
+  }
+
   get program(): PublicKey | undefined {
     return this._programErrorStack?.stack[
       this._programErrorStack.stack.length - 1
@@ -273,7 +277,7 @@ export class ProgramError extends Error {
   }
 
   public toString(): string {
-    return this.msg;
+    return this.message;
   }
 }
 
