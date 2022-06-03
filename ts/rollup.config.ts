@@ -40,6 +40,7 @@ export default {
     "bn.js",
     "bs58",
     "buffer",
+    "buffer-layout",
     "camelcase",
     "eventemitter3",
     "js-sha256",
