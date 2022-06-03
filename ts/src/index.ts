@@ -13,11 +13,9 @@ export * from "./program/index.js";
 export * from "./spl/index.js";
 
 export declare const workspace: any;
-export declare class Wallet extends BaseWallet {}
+
+export class Wallet extends BaseWallet {}
 
 if (!isBrowser) {
   exports.workspace = require("./workspace.js").default;
-  exports.Wallet = require("./wallet.js").NodeWallet;
-} else {
-  exports.Wallet = require("./wallet.js").BaseWallet;
 }
