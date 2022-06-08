@@ -1,9 +1,9 @@
 import { Buffer } from "buffer";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { Wallet } from "./provider";
+import { Wallet as IWallet } from "./provider";
 import { isBrowser } from "./utils/common";
 
-export class BaseWallet implements Wallet {
+export class Wallet implements IWallet {
   constructor(readonly payer: Keypair) {}
 
   async signTransaction(tx: Transaction): Promise<Transaction> {
@@ -23,19 +23,20 @@ export class BaseWallet implements Wallet {
   }
 
   static local(): Wallet {
-    if (!isBrowser) {
-      const process = require("process");
-      const payer = Keypair.fromSecretKey(
-        Buffer.from(
-          JSON.parse(
-            require("fs").readFileSync(process.env.ANCHOR_WALLET, {
-              encoding: "utf-8",
-            })
-          )
-        )
-      );
-      return new BaseWallet(payer);
+    if (isBrowser) {
+      throw new Error("Local wallet not supported in browser");
     }
-    throw new Error("Local wallet not supported in browser");
+
+    const process = require("process");
+    const payer = Keypair.fromSecretKey(
+      Buffer.from(
+        JSON.parse(
+          require("fs").readFileSync(process.env.ANCHOR_WALLET, {
+            encoding: "utf-8",
+          })
+        )
+      )
+    );
+    return new Wallet(payer);
   }
 }

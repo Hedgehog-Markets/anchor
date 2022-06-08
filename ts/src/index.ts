@@ -1,4 +1,3 @@
-import { BaseWallet } from "./wallet";
 import { isBrowser } from "./utils/common.js";
 
 export { default as BN } from "bn.js";
@@ -14,7 +13,7 @@ export * from "./spl/index.js";
 
 export declare const workspace: any;
 
-export class Wallet extends BaseWallet {}
+export { Wallet } from "./wallet";
 
 if (!isBrowser) {
   exports.workspace = require("./workspace.js").default;

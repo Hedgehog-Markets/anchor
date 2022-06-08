@@ -12,6 +12,7 @@ import {
 } from "@solana/web3.js";
 import { bs58 } from "./utils/bytes/index.js";
 import { isBrowser } from "./utils/common.js";
+import { Wallet as NodeWallet } from "./wallet";
 
 /**
  * The network and wallet context used to send transactions paid for and signed
@@ -53,7 +54,6 @@ export default class Provider {
       url ?? "http://localhost:8899",
       opts.preflightCommitment
     );
-    const NodeWallet = require("./wallet.js").NodeWallet;
     const wallet = NodeWallet.local();
     return new Provider(connection, wallet, opts);
   }
@@ -76,7 +76,6 @@ export default class Provider {
     }
     const options = Provider.defaultOptions();
     const connection = new Connection(url, options.commitment);
-    const NodeWallet = require("./wallet.js").NodeWallet;
     const wallet = NodeWallet.local();
 
     return new Provider(connection, wallet, options);
