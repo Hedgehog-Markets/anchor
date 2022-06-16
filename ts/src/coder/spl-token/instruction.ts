@@ -219,7 +219,7 @@ function encodeInitializeMint2({
   freezeAuthority,
 }: any): Buffer {
   return encodeData({
-    encodeInitializeMint2: { decimals, mintAuthority, freezeAuthority },
+    initializeMint2: { decimals, mintAuthority, freezeAuthority },
   });
 }
 
