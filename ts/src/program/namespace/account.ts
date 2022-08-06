@@ -41,10 +41,6 @@ export default class AccountFactory {
   }
 }
 
-type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
-  ? IdlAccountDef
-  : NonNullable<IDL["accounts"]>[number];
-
 /**
  * The namespace provides handles to an [[AccountClient]] object for each
  * account in a program.
@@ -66,14 +62,15 @@ type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
  * For the full API, see the [[AccountClient]] reference.
  */
 export type AccountNamespace<IDL extends Idl = Idl> = {
-  [M in keyof AllAccountsMap<IDL>]: AccountClient<IDL>;
+  [M in NonNullable<IDL["accounts"]>[number]["name"]]: AccountClient<
+    IDL,
+    NonNullable<IDL["accounts"]>[number] & { name: M }
+  >;
 };
 
 export class AccountClient<
   IDL extends Idl = Idl,
-  A extends NullableIdlAccount<IDL> = IDL["accounts"] extends undefined
-    ? IdlAccountDef
-    : NonNullable<IDL["accounts"]>[number],
+  A extends IdlAccountDef = IdlAccountDef,
   T = TypeDef<A, IdlTypes<IDL>>
 > {
   /**
@@ -291,9 +288,10 @@ export class AccountClient<
       fromPubkey: this._provider.wallet.publicKey,
       newAccountPubkey: signer.publicKey,
       space: sizeOverride ?? size,
-      lamports: await this._provider.connection.getMinimumBalanceForRentExemption(
-        sizeOverride ?? size
-      ),
+      lamports:
+        await this._provider.connection.getMinimumBalanceForRentExemption(
+          sizeOverride ?? size
+        ),
       programId: this._programId,
     });
   }
