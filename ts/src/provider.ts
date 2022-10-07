@@ -20,7 +20,8 @@ import { Wallet as NodeWallet } from "./wallet";
 
 export default interface Provider {
   readonly connection: Connection;
-  readonly publicKey?: PublicKey;
+  readonly wallet: Wallet;
+  readonly publicKey: PublicKey;
 
   send?(
     tx: Transaction,

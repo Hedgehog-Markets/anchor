@@ -249,7 +249,6 @@ function stateInstructionKeys<M extends IdlStateMethod>(
   if (m.name === "new") {
     // Ctor `new` method.
     const [programSigner] = findProgramAddressSync([], programId);
-    // @ts-expect-error
     if (provider.wallet === undefined) {
       throw new Error(
         "This function requires the Provider interface implementor to have a 'wallet' field."
@@ -257,7 +256,6 @@ function stateInstructionKeys<M extends IdlStateMethod>(
     }
     return [
       {
-        // @ts-expect-error
         pubkey: provider.wallet.publicKey,
         isWritable: false,
         isSigner: true,
