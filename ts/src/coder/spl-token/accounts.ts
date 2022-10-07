@@ -13,11 +13,13 @@ export class SplTokenAccountsCoder<A extends string = string>
     switch (accountName) {
       case "token": {
         const buffer = Buffer.alloc(165);
+        // @ts-ignore
         const len = TOKEN_ACCOUNT_LAYOUT.encode(account, buffer);
         return buffer.slice(0, len);
       }
       case "mint": {
         const buffer = Buffer.alloc(82);
+        // @ts-ignore
         const len = MINT_ACCOUNT_LAYOUT.encode(account, buffer);
         return buffer.slice(0, len);
       }

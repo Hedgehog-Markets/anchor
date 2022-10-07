@@ -69,6 +69,13 @@ export type SplAssociatedToken = {
       args: [];
     }
   ];
+  errors: [
+    {
+      code: 0;
+      name: "InvalidOwner";
+      msg: "Associated token account owner does not match address derivation";
+    }
+  ];
 };
 
 export const IDL: SplAssociatedToken = {
@@ -115,6 +122,13 @@ export const IDL: SplAssociatedToken = {
         },
       ],
       args: [],
+    },
+  ],
+  errors: [
+    {
+      code: 0,
+      name: "InvalidOwner",
+      msg: "Associated token account owner does not match address derivation",
     },
   ],
 };

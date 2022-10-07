@@ -1,8 +1,10 @@
 import { AccountsCoder } from "../index.js";
 import { Idl, IdlTypeDef } from "../../idl.js";
 import * as BufferLayout from "buffer-layout";
-import { NONCE_ACCOUNT_LENGTH, PublicKey } from "@solana/web3.js";
+import * as borsh from "@project-serum/borsh";
+import { NONCE_ACCOUNT_LENGTH } from "@solana/web3.js";
 import { accountSize } from "../common.js";
+import BN from "bn.js";
 
 export class SystemAccountsCoder<A extends string = string>
   implements AccountsCoder
@@ -13,7 +15,7 @@ export class SystemAccountsCoder<A extends string = string>
     switch (accountName) {
       case "nonce": {
         const buffer = Buffer.alloc(NONCE_ACCOUNT_LENGTH);
-        const len = NONCE_ACCOUNT_LAYOUT.encode(account, buffer);
+        const len = NONCE_ACCOUNT_LAYOUT.encode(account as any, buffer);
         return buffer.slice(0, len);
       }
       default: {
@@ -90,22 +92,13 @@ class WrappedLayout<T, U> extends BufferLayout.Layout<U> {
   }
 }
 
-function publicKey(property?: string): BufferLayout.Layout<PublicKey> {
-  return new WrappedLayout(
-    BufferLayout.blob(32),
-    (b: Buffer) => new PublicKey(b),
-    (key: PublicKey) => key.toBuffer(),
-    property
-  );
-}
-
 const NONCE_ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.u32("version"),
   BufferLayout.u32("state"),
-  publicKey("authorizedPubkey"),
-  publicKey("nonce"),
-  BufferLayout.struct(
-    [BufferLayout.nu64("lamportsPerSignature")],
+  borsh.publicKey("authorizedPubkey"),
+  borsh.publicKey("nonce"),
+  BufferLayout.struct<{ lamportsPerSignature: BN }>(
+    [borsh.u64("lamportsPerSignature")],
     "feeCalculator"
   ),
 ]);

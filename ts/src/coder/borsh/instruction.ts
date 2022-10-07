@@ -106,7 +106,7 @@ export class BorshInstructionCoder implements InstructionCoder {
           );
         });
         const name = camelCase(m.name);
-        return [name, borsh.struct(fieldLayouts, name)];
+        return [name, borsh.struct<any>(fieldLayouts, name)];
       })
       .concat(
         idl.instructions.map((ix) => {
@@ -117,7 +117,7 @@ export class BorshInstructionCoder implements InstructionCoder {
             )
           );
           const name = camelCase(ix.name);
-          return [name, borsh.struct(fieldLayouts, name)];
+          return [name, borsh.struct<any>(fieldLayouts, name)];
         })
       );
     return new Map(ixLayouts);

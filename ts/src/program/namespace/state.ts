@@ -7,7 +7,13 @@ import {
   AccountMeta,
 } from "@solana/web3.js";
 import Provider, { getProvider } from "../../provider.js";
-import { Idl, IdlInstruction, IdlStateMethod, IdlTypeDef } from "../../idl.js";
+import {
+  Idl,
+  IdlInstruction,
+  IdlState,
+  IdlStateMethod,
+  IdlTypeDef,
+} from "../../idl.js";
 import { BorshCoder, Coder, stateDiscriminator } from "../../coder/index.js";
 import {
   RpcNamespace,
@@ -39,9 +45,9 @@ export default class StateFactory {
   }
 }
 
-type NullableMethods<IDL extends Idl> = IDL["state"] extends undefined
-  ? IdlInstruction[]
-  : NonNullable<IDL["state"]>["methods"];
+type NullableMethods<IDL extends Idl> = IDL["state"] extends IdlState
+  ? IDL["state"]["methods"]
+  : IdlInstruction[];
 
 /**
  * A client for the program state. Similar to the base [[Program]] client,
@@ -156,9 +162,7 @@ export class StateClient<IDL extends Idl> {
    */
   async fetch(): Promise<
     TypeDef<
-      IDL["state"] extends undefined
-        ? IdlTypeDef
-        : NonNullable<IDL["state"]>["struct"],
+      IDL["state"] extends IdlState ? IDL["state"]["struct"] : IdlTypeDef,
       IdlTypes<IDL>
     >
   > {

@@ -1,6 +1,6 @@
 import * as BufferLayout from "buffer-layout";
+import * as borsh from "@project-serum/borsh";
 import camelCase from "camelcase";
-import { PublicKey } from "@solana/web3.js";
 import { InstructionCoder } from "../index.js";
 import { Idl } from "../../idl.js";
 
@@ -91,9 +91,8 @@ function encodeInitializeMint({
   return encodeData({
     initializeMint: {
       decimals,
-      mintAuthority: mintAuthority.toBuffer(),
-      freezeAuthorityOption: !!freezeAuthority,
-      freezeAuthority: (freezeAuthority || PublicKey.default).toBuffer(),
+      mintAuthority,
+      freezeAuthority,
     },
   });
 }
@@ -220,7 +219,7 @@ function encodeInitializeMint2({
   freezeAuthority,
 }: any): Buffer {
   return encodeData({
-    encodeInitializeMint2: { decimals, mintAuthority, freezeAuthority },
+    initializeMint2: { decimals, mintAuthority, freezeAuthority },
   });
 }
 
@@ -229,9 +228,8 @@ LAYOUT.addVariant(
   0,
   BufferLayout.struct([
     BufferLayout.u8("decimals"),
-    BufferLayout.blob(32, "mintAuthority"),
-    BufferLayout.u8("freezeAuthorityOption"),
-    publicKey("freezeAuthority"),
+    borsh.publicKey("mintAuthority"),
+    borsh.option(borsh.publicKey(), "freezeAuthority"),
   ]),
   "initializeMint"
 );
@@ -241,80 +239,51 @@ LAYOUT.addVariant(
   BufferLayout.struct([BufferLayout.u8("m")]),
   "initializeMultisig"
 );
-LAYOUT.addVariant(
-  3,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "transfer"
-);
-LAYOUT.addVariant(
-  4,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "approve"
-);
+LAYOUT.addVariant(3, BufferLayout.struct([borsh.u64("amount")]), "transfer");
+LAYOUT.addVariant(4, BufferLayout.struct([borsh.u64("amount")]), "approve");
 LAYOUT.addVariant(5, BufferLayout.struct([]), "revoke");
 LAYOUT.addVariant(
   6,
   BufferLayout.struct([
     BufferLayout.u8("authorityType"),
-    BufferLayout.u8("newAuthorityOption"),
-    publicKey("newAuthority"),
+    borsh.option(borsh.publicKey(), "newAuthority"),
   ]),
   "setAuthority"
 );
-LAYOUT.addVariant(
-  7,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "mintTo"
-);
-LAYOUT.addVariant(
-  8,
-  BufferLayout.struct([BufferLayout.nu64("amount")]),
-  "burn"
-);
+LAYOUT.addVariant(7, BufferLayout.struct([borsh.u64("amount")]), "mintTo");
+LAYOUT.addVariant(8, BufferLayout.struct([borsh.u64("amount")]), "burn");
 LAYOUT.addVariant(9, BufferLayout.struct([]), "closeAccount");
 LAYOUT.addVariant(10, BufferLayout.struct([]), "freezeAccount");
 LAYOUT.addVariant(11, BufferLayout.struct([]), "thawAccount");
 LAYOUT.addVariant(
   12,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "transferChecked"
 );
 LAYOUT.addVariant(
   13,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "approvedChecked"
 );
 LAYOUT.addVariant(
   14,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "mintToChecked"
 );
 LAYOUT.addVariant(
   15,
-  BufferLayout.struct([
-    BufferLayout.nu64("amount"),
-    BufferLayout.u8("decimals"),
-  ]),
+  BufferLayout.struct([borsh.u64("amount"), BufferLayout.u8("decimals")]),
   "burnedChecked"
 );
 LAYOUT.addVariant(
   16,
-  BufferLayout.struct([publicKey("authority")]),
+  BufferLayout.struct([borsh.publicKey("authority")]),
   "InitializeAccount2"
 );
 LAYOUT.addVariant(17, BufferLayout.struct([]), "syncNative");
 LAYOUT.addVariant(
   18,
-  BufferLayout.struct([publicKey("authority")]),
+  BufferLayout.struct([borsh.publicKey("authority")]),
   "initializeAccount3"
 );
 LAYOUT.addVariant(
@@ -326,16 +295,12 @@ LAYOUT.addVariant(
   20,
   BufferLayout.struct([
     BufferLayout.u8("decimals"),
-    publicKey("mintAuthority"),
+    borsh.publicKey("mintAuthority"),
     BufferLayout.u8("freezeAuthorityOption"),
-    publicKey("freezeAuthority"),
+    borsh.publicKey("freezeAuthority"),
   ]),
   "initializeMint2"
 );
-
-function publicKey(property: string): any {
-  return BufferLayout.blob(32, property);
-}
 
 function encodeData(instruction: any): Buffer {
   let b = Buffer.alloc(instructionMaxSpan);
@@ -343,7 +308,47 @@ function encodeData(instruction: any): Buffer {
   return b.slice(0, span);
 }
 
-const instructionMaxSpan = Math.max(
-  // @ts-ignore
-  ...Object.values(LAYOUT.registry).map((r) => r.span)
-);
+const instructionMaxSpan = (() => {
+  // Hacky approach to compute the max span of a layout.
+  const computeMaxSpan = (layout: BufferLayout.Layout): number => {
+    if (layout.span >= 0) {
+      return layout.span;
+    }
+
+    if (layout instanceof BufferLayout.Structure) {
+      return layout.fields.reduce(
+        (acc, field) => acc + computeMaxSpan(field),
+        0
+      );
+    } else if (layout instanceof BufferLayout.Union) {
+      let span = Math.max(
+        ...Object.values(layout.registry).map((variant) =>
+          computeMaxSpan(variant)
+        )
+      );
+
+      if (layout.usesPrefixDiscriminator) {
+        span += (layout.discriminator as BufferLayout.UnionLayoutDiscriminator)
+          .layout.span;
+      }
+
+      return span;
+    } else if (layout instanceof BufferLayout.VariantLayout) {
+      return layout.layout == null ? 0 : computeMaxSpan(layout.layout);
+    } else if (
+      "layout" in layout &&
+      layout["layout"] instanceof BufferLayout.Layout &&
+      "discriminator" in layout &&
+      layout["discriminator"] instanceof BufferLayout.UInt
+    ) {
+      type OptionLayout = ReturnType<typeof borsh.option>;
+
+      const opt = layout as OptionLayout;
+      return computeMaxSpan(opt.discriminator) + computeMaxSpan(opt.layout);
+    }
+
+    throw new Error("indeterminate span");
+  };
+
+  return computeMaxSpan(LAYOUT);
+})();

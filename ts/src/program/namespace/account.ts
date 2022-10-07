@@ -24,7 +24,7 @@ export default class AccountFactory {
     programId: PublicKey,
     provider?: Provider
   ): AccountNamespace<IDL> {
-    const accountFns: AccountNamespace = {};
+    const accountFns = {} as AccountNamespace<IDL>;
 
     idl.accounts?.forEach((idlAccount) => {
       const name = camelCase(idlAccount.name);
@@ -37,13 +37,9 @@ export default class AccountFactory {
       );
     });
 
-    return accountFns as AccountNamespace<IDL>;
+    return accountFns;
   }
 }
-
-type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
-  ? IdlAccountDef
-  : NonNullable<IDL["accounts"]>[number];
 
 /**
  * The namespace provides handles to an [[AccountClient]] object for each
@@ -65,15 +61,19 @@ type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
  *
  * For the full API, see the [[AccountClient]] reference.
  */
-export type AccountNamespace<IDL extends Idl = Idl> = {
-  [M in keyof AllAccountsMap<IDL>]: AccountClient<IDL>;
-};
+export type AccountNamespace<IDL extends Idl = Idl> =
+  IDL["accounts"] extends IdlAccountDef[]
+    ? {
+        [M in IDL["accounts"][number]["name"]]: AccountClient<
+          IDL,
+          IDL["accounts"][number] & { name: M }
+        >;
+      }
+    : never;
 
 export class AccountClient<
   IDL extends Idl = Idl,
-  A extends NullableIdlAccount<IDL> = IDL["accounts"] extends undefined
-    ? IdlAccountDef
-    : NonNullable<IDL["accounts"]>[number],
+  A extends IdlAccountDef = IdlAccountDef,
   T = TypeDef<A, IdlTypes<IDL>>
 > {
   /**

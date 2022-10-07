@@ -16,6 +16,7 @@ import {
   simulateTransaction,
   SuccessfulTxSimulationResponse,
 } from "./utils/rpc.js";
+import { Wallet as NodeWallet } from "./wallet";
 
 export default interface Provider {
   readonly connection: Connection;
@@ -87,7 +88,6 @@ export class AnchorProvider implements Provider {
       url ?? "http://localhost:8899",
       opts.preflightCommitment
     );
-    const NodeWallet = require("./nodewallet.js").default;
     const wallet = NodeWallet.local();
     return new AnchorProvider(connection, wallet, opts);
   }
@@ -110,7 +110,6 @@ export class AnchorProvider implements Provider {
     }
     const options = AnchorProvider.defaultOptions();
     const connection = new Connection(url, options.commitment);
-    const NodeWallet = require("./nodewallet.js").default;
     const wallet = NodeWallet.local();
 
     return new AnchorProvider(connection, wallet, options);

@@ -56,6 +56,7 @@
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.3.0",
+    "@solana/buffer-layout": "^4.0.0",
     "@types/bn.js": "^4.11.6",
     "@types/bs58": "^4.0.1",
     "@types/crypto-hash": "^1.1.2",
@@ -77,8 +78,8 @@
     "ts-jest-resolver": "^2.0.0",
     "ts-node": "^9.0.0",
     "tslib": "^2.3.1",
-    "typedoc": "^0.22.10",
-    "typescript": "^4.5.2"
+    "typedoc": "^0.23.15",
+    "typescript": "^4.8.4"
   },
   "files": [
     "dist",

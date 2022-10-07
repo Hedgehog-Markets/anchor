@@ -196,12 +196,8 @@ export class AnchorError extends Error {
 export class ProgramError extends Error {
   private readonly _programErrorStack?: ProgramErrorStack;
 
-  constructor(
-    readonly code: number,
-    readonly msg: string,
-    readonly logs?: string[]
-  ) {
-    super();
+  constructor(readonly code: number, msg: string, readonly logs?: string[]) {
+    super(msg);
     if (logs) {
       this._programErrorStack = ProgramErrorStack.parse(logs);
     }
@@ -253,6 +249,10 @@ export class ProgramError extends Error {
     return null;
   }
 
+  get msg(): string {
+    return this.message;
+  }
+
   get program(): PublicKey | undefined {
     return this._programErrorStack?.stack[
       this._programErrorStack.stack.length - 1
@@ -264,7 +264,7 @@ export class ProgramError extends Error {
   }
 
   public toString(): string {
-    return this.msg;
+    return this.message;
   }
 }
 
@@ -305,77 +305,77 @@ export function translateError(err: any, idlErrors: Map<number, string>) {
   return err;
 }
 
-export const LangErrorCode = {
+export enum LangErrorCode {
   // Instructions.
-  InstructionMissing: 100,
-  InstructionFallbackNotFound: 101,
-  InstructionDidNotDeserialize: 102,
-  InstructionDidNotSerialize: 103,
+  InstructionMissing = 100,
+  InstructionFallbackNotFound = 101,
+  InstructionDidNotDeserialize = 102,
+  InstructionDidNotSerialize = 103,
 
   // IDL instructions.
-  IdlInstructionStub: 1000,
-  IdlInstructionInvalidProgram: 1001,
+  IdlInstructionStub = 1000,
+  IdlInstructionInvalidProgram = 1001,
 
   // Constraints.
-  ConstraintMut: 2000,
-  ConstraintHasOne: 2001,
-  ConstraintSigner: 2002,
-  ConstraintRaw: 2003,
-  ConstraintOwner: 2004,
-  ConstraintRentExempt: 2005,
-  ConstraintSeeds: 2006,
-  ConstraintExecutable: 2007,
-  ConstraintState: 2008,
-  ConstraintAssociated: 2009,
-  ConstraintAssociatedInit: 2010,
-  ConstraintClose: 2011,
-  ConstraintAddress: 2012,
-  ConstraintZero: 2013,
-  ConstraintTokenMint: 2014,
-  ConstraintTokenOwner: 2015,
-  ConstraintMintMintAuthority: 2016,
-  ConstraintMintFreezeAuthority: 2017,
-  ConstraintMintDecimals: 2018,
-  ConstraintSpace: 2019,
+  ConstraintMut = 2000,
+  ConstraintHasOne = 2001,
+  ConstraintSigner = 2002,
+  ConstraintRaw = 2003,
+  ConstraintOwner = 2004,
+  ConstraintRentExempt = 2005,
+  ConstraintSeeds = 2006,
+  ConstraintExecutable = 2007,
+  ConstraintState = 2008,
+  ConstraintAssociated = 2009,
+  ConstraintAssociatedInit = 2010,
+  ConstraintClose = 2011,
+  ConstraintAddress = 2012,
+  ConstraintZero = 2013,
+  ConstraintTokenMint = 2014,
+  ConstraintTokenOwner = 2015,
+  ConstraintMintMintAuthority = 2016,
+  ConstraintMintFreezeAuthority = 2017,
+  ConstraintMintDecimals = 2018,
+  ConstraintSpace = 2019,
 
   // Require.
-  RequireViolated: 2500,
-  RequireEqViolated: 2501,
-  RequireKeysEqViolated: 2502,
-  RequireNeqViolated: 2503,
-  RequireKeysNeqViolated: 2504,
-  RequireGtViolated: 2505,
-  RequireGteViolated: 2506,
+  RequireViolated = 2500,
+  RequireEqViolated = 2501,
+  RequireKeysEqViolated = 2502,
+  RequireNeqViolated = 2503,
+  RequireKeysNeqViolated = 2504,
+  RequireGtViolated = 2505,
+  RequireGteViolated = 2506,
 
   // Accounts.
-  AccountDiscriminatorAlreadySet: 3000,
-  AccountDiscriminatorNotFound: 3001,
-  AccountDiscriminatorMismatch: 3002,
-  AccountDidNotDeserialize: 3003,
-  AccountDidNotSerialize: 3004,
-  AccountNotEnoughKeys: 3005,
-  AccountNotMutable: 3006,
-  AccountOwnedByWrongProgram: 3007,
-  InvalidProgramId: 3008,
-  InvalidProgramExecutable: 3009,
-  AccountNotSigner: 3010,
-  AccountNotSystemOwned: 3011,
-  AccountNotInitialized: 3012,
-  AccountNotProgramData: 3013,
-  AccountNotAssociatedTokenAccount: 3014,
-  AccountSysvarMismatch: 3015,
-  AccountReallocExceedsLimit: 3016,
-  AccountDuplicateReallocs: 3017,
+  AccountDiscriminatorAlreadySet = 3000,
+  AccountDiscriminatorNotFound = 3001,
+  AccountDiscriminatorMismatch = 3002,
+  AccountDidNotDeserialize = 3003,
+  AccountDidNotSerialize = 3004,
+  AccountNotEnoughKeys = 3005,
+  AccountNotMutable = 3006,
+  AccountOwnedByWrongProgram = 3007,
+  InvalidProgramId = 3008,
+  InvalidProgramExecutable = 3009,
+  AccountNotSigner = 3010,
+  AccountNotSystemOwned = 3011,
+  AccountNotInitialized = 3012,
+  AccountNotProgramData = 3013,
+  AccountNotAssociatedTokenAccount = 3014,
+  AccountSysvarMismatch = 3015,
+  AccountReallocExceedsLimit = 3016,
+  AccountDuplicateReallocs = 3017,
 
   // State.
-  StateInvalidAddress: 4000,
+  StateInvalidAddress = 4000,
 
   // Miscellaneous
-  DeclaredProgramIdMismatch: 4100,
+  DeclaredProgramIdMismatch = 4100,
 
   // Used for APIs that shouldn't be used anymore.
-  Deprecated: 5000,
-};
+  Deprecated = 5000,
+}
 
 export const LangErrorMessage = new Map([
   // Instructions.

@@ -62,7 +62,7 @@ class RustStringLayout extends BufferLayout.Layout<string | null> {
     Readonly<{
       length?: number;
       lengthPadding?: number;
-      chars: Buffer;
+      chars: Uint8Array;
     }>
   >(
     [
@@ -146,7 +146,7 @@ function encodeCreateAccountWithSeed({
         owner: owner.toBuffer(),
       },
     },
-    LAYOUT.getVariant(3).span + seed.length
+    LAYOUT.getVariant(3)!.span + seed.length
   );
 }
 
@@ -190,7 +190,7 @@ function encodeAllocateWithSeed({ base, seed, space, owner }: any): Buffer {
         owner: owner.toBuffer(),
       },
     },
-    LAYOUT.getVariant(9).span + seed.length
+    LAYOUT.getVariant(9)!.span + seed.length
   );
 }
 
@@ -203,7 +203,7 @@ function encodeAssignWithSeed({ base, seed, owner }: any): Buffer {
         owner: owner.toBuffer(),
       },
     },
-    LAYOUT.getVariant(10).span + seed.length
+    LAYOUT.getVariant(10)!.span + seed.length
   );
 }
 
@@ -216,7 +216,7 @@ function encodeTransferWithSeed({ lamports, seed, owner }: any): Buffer {
         owner: owner.toBuffer(),
       },
     },
-    LAYOUT.getVariant(11).span + seed.length
+    LAYOUT.getVariant(11)!.span + seed.length
   );
 }
 

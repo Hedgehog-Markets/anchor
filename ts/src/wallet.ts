@@ -1,14 +1,16 @@
 import { Buffer } from "buffer";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { Wallet } from "./provider";
+import { Wallet as IWallet } from "./provider";
+import { isBrowser } from "./utils/common";
 
-/**
- * Node only wallet.
- */
-export default class NodeWallet implements Wallet {
+export class Wallet implements IWallet {
   constructor(readonly payer: Keypair) {}
 
-  static local(): NodeWallet | never {
+  static local(): Wallet | never {
+    if (isBrowser) {
+      throw new Error("Local wallet not supported in browser");
+    }
+
     const process = require("process");
 
     if (!process.env.ANCHOR_WALLET || process.env.ANCHOR_WALLET === "") {
@@ -27,7 +29,7 @@ export default class NodeWallet implements Wallet {
       )
     );
 
-    return new NodeWallet(payer);
+    return new Wallet(payer);
   }
 
   async signTransaction(tx: Transaction): Promise<Transaction> {
