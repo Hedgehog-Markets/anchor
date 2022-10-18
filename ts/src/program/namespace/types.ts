@@ -14,6 +14,7 @@ import {
 } from "../../idl";
 import { Accounts, Context } from "../context";
 import { MethodsBuilder } from "./methods";
+import type { CamelCase } from "@juici/case";
 
 /**
  * All instructions for an IDL.
@@ -165,7 +166,10 @@ type XorVariantDefs<T extends Record<string, unknown>> = ValueOf<{
   } & { [K2 in K1]: T[K2] };
 }>;
 type VariantDefs<I extends IdlEnumVariant[], Defined> = {
-  [K in I[number]["name"]]: VariantDef<I[number] & { name: K }, Defined>;
+  [K in I[number]["name"] as CamelCase<K>]: VariantDef<
+    I[number] & { name: K },
+    Defined
+  >;
 };
 type EnumDef<I extends IdlEnumVariant[], Defined> = XorVariantDefs<
   VariantDefs<I, Defined>

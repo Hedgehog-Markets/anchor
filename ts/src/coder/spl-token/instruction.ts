@@ -1,8 +1,9 @@
 import * as BufferLayout from "buffer-layout";
 import * as borsh from "@project-serum/borsh";
-import camelCase from "camelcase";
+import { camelCase } from "@juici/case";
 import { InstructionCoder } from "../index.js";
 import { Idl } from "../../idl.js";
+import { layoutSize } from "../common.js";
 
 export class SplTokenInstructionCoder implements InstructionCoder {
   constructor(_: Idl) {}
@@ -305,50 +306,7 @@ LAYOUT.addVariant(
 function encodeData(instruction: any): Buffer {
   let b = Buffer.alloc(instructionMaxSpan);
   let span = LAYOUT.encode(instruction, b);
-  return b.slice(0, span);
+  return b.subarray(0, span);
 }
 
-const instructionMaxSpan = (() => {
-  // Hacky approach to compute the max span of a layout.
-  const computeMaxSpan = (layout: BufferLayout.Layout): number => {
-    if (layout.span >= 0) {
-      return layout.span;
-    }
-
-    if (layout instanceof BufferLayout.Structure) {
-      return layout.fields.reduce(
-        (acc, field) => acc + computeMaxSpan(field),
-        0
-      );
-    } else if (layout instanceof BufferLayout.Union) {
-      let span = Math.max(
-        ...Object.values(layout.registry).map((variant) =>
-          computeMaxSpan(variant)
-        )
-      );
-
-      if (layout.usesPrefixDiscriminator) {
-        span += (layout.discriminator as BufferLayout.UnionLayoutDiscriminator)
-          .layout.span;
-      }
-
-      return span;
-    } else if (layout instanceof BufferLayout.VariantLayout) {
-      return layout.layout == null ? 0 : computeMaxSpan(layout.layout);
-    } else if (
-      "layout" in layout &&
-      layout["layout"] instanceof BufferLayout.Layout &&
-      "discriminator" in layout &&
-      layout["discriminator"] instanceof BufferLayout.UInt
-    ) {
-      type OptionLayout = ReturnType<typeof borsh.option>;
-
-      const opt = layout as OptionLayout;
-      return computeMaxSpan(opt.discriminator) + computeMaxSpan(opt.layout);
-    }
-
-    throw new Error("indeterminate span");
-  };
-
-  return computeMaxSpan(LAYOUT);
-})();
+const instructionMaxSpan = layoutSize(LAYOUT);

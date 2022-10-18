@@ -2,13 +2,15 @@ import { Layout } from "buffer-layout";
 import * as borsh from "@project-serum/borsh";
 import { IdlField, IdlTypeDef, IdlEnumVariant, IdlType } from "../../idl.js";
 import { IdlError } from "../../error.js";
+import { camelCase } from "@juici/case";
 
 export class IdlCoder {
   public static fieldLayout(
     field: { name?: string } & Pick<IdlField, "type">,
     types?: IdlTypeDef[]
   ): Layout {
-    const fieldName = field.name;
+    const fieldName =
+      field.name !== undefined ? camelCase(field.name) : undefined;
     switch (field.type) {
       case "bool": {
         return borsh.bool(fieldName);
@@ -123,7 +125,7 @@ export class IdlCoder {
       return borsh.struct(fieldLayouts, name);
     } else if (typeDef.type.kind === "enum") {
       const variants = typeDef.type.variants.map((variant: IdlEnumVariant) => {
-        const name = variant.name;
+        const name = camelCase(variant.name);
         if (variant.fields === undefined) {
           return borsh.struct([], name);
         }

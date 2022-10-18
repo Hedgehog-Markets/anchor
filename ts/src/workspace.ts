@@ -1,4 +1,4 @@
-import camelCase from "camelcase";
+import { camelCase, pascalCase } from "@juici/case";
 import * as toml from "toml";
 import { PublicKey } from "@solana/web3.js";
 import { Program } from "./program/index.js";
@@ -20,13 +20,13 @@ const workspace = new Proxy({} as any, {
       throw new Error("Workspaces aren't available in the browser");
     }
 
-    const fs = require("fs");
-    const process = require("process");
+    const fs: typeof import("fs") = require("fs");
+    const process: typeof import("process") = require("process");
 
     if (!_populatedWorkspace) {
       const path = require("path");
 
-      let projectRoot = process.cwd();
+      let projectRoot: string | undefined = process.cwd();
       while (!fs.existsSync(path.join(projectRoot, "Anchor.toml"))) {
         const parentDir = path.dirname(projectRoot);
         if (parentDir === projectRoot) {
@@ -51,10 +51,10 @@ const workspace = new Proxy({} as any, {
         .filter((file) => file.endsWith(".json"))
         .forEach((file) => {
           const filePath = `${idlFolder}/${file}`;
-          const idlStr = fs.readFileSync(filePath);
+          const idlStr = fs.readFileSync(filePath, "utf-8");
           const idl = JSON.parse(idlStr);
           idlMap.set(idl.name, idl);
-          const name = camelCase(idl.name, { pascalCase: true });
+          const name = pascalCase(idl.name);
           if (idl.metadata && idl.metadata.address) {
             workspaceCache[name] = new Program(
               idl,
@@ -89,7 +89,7 @@ function attachWorkspaceOverride(
   idlMap: Map<string, Idl>
 ) {
   Object.keys(overrideConfig).forEach((programName) => {
-    const wsProgramName = camelCase(programName, { pascalCase: true });
+    const wsProgramName = pascalCase(programName);
     const entry = overrideConfig[programName];
     const overrideAddress = new PublicKey(
       typeof entry === "string" ? entry : entry.address

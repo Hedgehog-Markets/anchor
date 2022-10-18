@@ -1,4 +1,4 @@
-import camelCase from "camelcase";
+import { camelCase } from "@juici/case";
 import EventEmitter from "eventemitter3";
 import {
   Signer,

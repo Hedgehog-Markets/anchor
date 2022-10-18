@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import * as BufferLayout from "buffer-layout";
-import camelCase from "camelcase";
+import * as borsh from "@project-serum/borsh";
+import { camelCase } from "@juici/case";
 import { Idl } from "../../idl.js";
 import { InstructionCoder } from "../index.js";
 
@@ -83,32 +84,30 @@ class RustStringLayout extends BufferLayout.Layout<string | null> {
     }
 
     const data = {
-      chars: Buffer.from(src, "utf8"),
+      chars: Buffer.from(src, "utf-8"),
     };
 
     return this.layout.encode(data, b, offset);
   }
 
   decode(b: Buffer, offset = 0): string | null {
-    const data = this.layout.decode(b, offset);
-    return data["chars"].toString();
+    const { chars } = this.layout.decode(b, offset);
+    return Buffer.from(
+      chars.buffer,
+      chars.byteOffset,
+      chars.byteLength
+    ).toString("utf-8");
   }
 
   getSpan(b: Buffer, offset = 0): number {
-    return (
-      BufferLayout.u32().span +
-      BufferLayout.u32().span +
-      new BN(new Uint8Array(b).slice(offset, offset + 4), 10, "le").toNumber()
-    );
+    const view = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    const len = view.getUint32(offset, true);
+    return 8 + len;
   }
 }
 
 function rustStringLayout(property: string) {
   return new RustStringLayout(property);
-}
-
-function publicKey(property: string): any {
-  return BufferLayout.blob(32, property);
 }
 
 function encodeCreateAccount({ lamports, space, owner }: any): Buffer {
@@ -224,79 +223,71 @@ const LAYOUT = BufferLayout.union(BufferLayout.u32("instruction"));
 LAYOUT.addVariant(
   0,
   BufferLayout.struct([
-    BufferLayout.ns64("lamports"),
-    BufferLayout.ns64("space"),
-    publicKey("owner"),
+    borsh.u64("lamports"),
+    borsh.u64("space"),
+    borsh.publicKey("owner"),
   ]),
   "createAccount"
 );
-LAYOUT.addVariant(1, BufferLayout.struct([publicKey("owner")]), "assign");
-LAYOUT.addVariant(
-  2,
-  BufferLayout.struct([BufferLayout.ns64("lamports")]),
-  "transfer"
-);
+LAYOUT.addVariant(1, BufferLayout.struct([borsh.publicKey("owner")]), "assign");
+LAYOUT.addVariant(2, BufferLayout.struct([borsh.u64("lamports")]), "transfer");
 LAYOUT.addVariant(
   3,
   BufferLayout.struct([
-    publicKey("base"),
+    borsh.publicKey("base"),
     rustStringLayout("seed"),
-    BufferLayout.ns64("lamports"),
-    BufferLayout.ns64("space"),
-    publicKey("owner"),
+    borsh.u64("lamports"),
+    borsh.u64("space"),
+    borsh.publicKey("owner"),
   ]),
   "createAccountWithSeed"
 );
 LAYOUT.addVariant(
   4,
-  BufferLayout.struct([publicKey("authorized")]),
+  BufferLayout.struct([borsh.publicKey("authorized")]),
   "advanceNonceAccount"
 );
 LAYOUT.addVariant(
   5,
-  BufferLayout.struct([BufferLayout.ns64("lamports")]),
+  BufferLayout.struct([borsh.u64("lamports")]),
   "withdrawNonceAccount"
 );
 LAYOUT.addVariant(
   6,
-  BufferLayout.struct([publicKey("authorized")]),
+  BufferLayout.struct([borsh.publicKey("authorized")]),
   "initializeNonceAccount"
 );
 LAYOUT.addVariant(
   7,
-  BufferLayout.struct([publicKey("authorized")]),
+  BufferLayout.struct([borsh.publicKey("authorized")]),
   "authorizeNonceAccount"
 );
-LAYOUT.addVariant(
-  8,
-  BufferLayout.struct([BufferLayout.ns64("space")]),
-  "allocate"
-);
+LAYOUT.addVariant(8, BufferLayout.struct([borsh.u64("space")]), "allocate");
 LAYOUT.addVariant(
   9,
   BufferLayout.struct([
-    publicKey("base"),
+    borsh.publicKey("base"),
     rustStringLayout("seed"),
-    BufferLayout.ns64("space"),
-    publicKey("owner"),
+    borsh.u64("space"),
+    borsh.publicKey("owner"),
   ]),
   "allocateWithSeed"
 );
 LAYOUT.addVariant(
   10,
   BufferLayout.struct([
-    publicKey("base"),
+    borsh.publicKey("base"),
     rustStringLayout("seed"),
-    publicKey("owner"),
+    borsh.publicKey("owner"),
   ]),
   "assignWithSeed"
 );
 LAYOUT.addVariant(
   11,
   BufferLayout.struct([
-    BufferLayout.ns64("lamports"),
+    borsh.u64("lamports"),
     rustStringLayout("seed"),
-    publicKey("owner"),
+    borsh.publicKey("owner"),
   ]),
   "transferWithSeed"
 );
@@ -306,7 +297,7 @@ function encodeData(instruction: any, maxSpan?: number): Buffer {
   const span = LAYOUT.encode(instruction, b);
 
   if (maxSpan === undefined) {
-    return b.slice(0, span);
+    return b.subarray(0, span);
   }
 
   return b;

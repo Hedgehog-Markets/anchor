@@ -1,4 +1,4 @@
-import camelCase from "camelcase";
+import { camelCase } from "@juici/case";
 import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { Idl, IdlSeed, IdlAccount } from "../idl.js";
 import * as utf8 from "../utils/bytes/utf8.js";

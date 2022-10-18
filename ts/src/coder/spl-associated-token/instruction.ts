@@ -1,4 +1,4 @@
-import camelCase from "camelcase";
+import { camelCase } from "@juici/case";
 import { Idl } from "../../idl.js";
 import { InstructionCoder } from "../index.js";
 

@@ -1,5 +1,5 @@
 import EventEmitter from "eventemitter3";
-import camelCase from "camelcase";
+import { camelCase } from "@juici/case";
 import {
   PublicKey,
   SystemProgram,

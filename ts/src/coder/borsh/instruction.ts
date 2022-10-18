@@ -1,8 +1,7 @@
 import bs58 from "bs58";
 import { Buffer } from "buffer";
 import { Layout } from "buffer-layout";
-import camelCase from "camelcase";
-import { snakeCase } from "snake-case";
+import { camelCase, pascalCase, snakeCase } from "@juici/case";
 import { sha256 } from "js-sha256";
 import * as borsh from "@project-serum/borsh";
 import { AccountMeta, PublicKey } from "@solana/web3.js";
@@ -133,8 +132,8 @@ export class BorshInstructionCoder implements InstructionCoder {
     if (typeof ix === "string") {
       ix = encoding === "hex" ? Buffer.from(ix, "hex") : bs58.decode(ix);
     }
-    let sighash = bs58.encode(ix.slice(0, 8));
-    let data = ix.slice(8);
+    let sighash = bs58.encode(ix.subarray(0, 8));
+    let data = ix.subarray(8);
     const decoder = this.sighashLayouts.get(sighash);
     if (!decoder) {
       return null;
@@ -340,7 +339,7 @@ class InstructionFormatter {
           })
           .join(", ");
 
-        const variantName = camelCase(variant, { pascalCase: true });
+        const variantName = pascalCase(variant);
         if (namedFields.length === 0) {
           return variantName;
         }
@@ -388,5 +387,5 @@ function sentenceCase(field: string): string {
 function sighash(nameSpace: string, ixName: string): Buffer {
   let name = snakeCase(ixName);
   let preimage = `${nameSpace}:${name}`;
-  return Buffer.from(sha256.digest(preimage)).slice(0, 8);
+  return Buffer.from(sha256.digest(preimage)).subarray(0, 8);
 }

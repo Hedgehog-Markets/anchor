@@ -2,7 +2,7 @@ import BN from "bn.js";
 import bs58 from "bs58";
 import { PublicKey } from "@solana/web3.js";
 
-import NodeWallet from "../src/nodewallet";
+import { Wallet } from "../src/wallet";
 import { translateAddress } from "../src/program/common";
 
 describe("program/common", () => {
@@ -60,7 +60,7 @@ describe("program/common", () => {
       const oldValue = process.env.ANCHOR_WALLET;
       delete process.env.ANCHOR_WALLET;
 
-      expect(() => NodeWallet.local()).toThrowError(
+      expect(() => Wallet.local()).toThrowError(
         "expected environment variable `ANCHOR_WALLET` is not set."
       );
 

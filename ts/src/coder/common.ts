@@ -1,5 +1,56 @@
 import { Idl, IdlField, IdlTypeDef, IdlEnumVariant, IdlType } from "../idl.js";
 import { IdlError } from "../error.js";
+import * as BufferLayout from "buffer-layout";
+import * as borsh from "@project-serum/borsh";
+
+const isOptionLayout = (() => {
+  type OptionLayout = ReturnType<typeof borsh.option>;
+
+  return (layout: BufferLayout.Layout): layout is OptionLayout =>
+    layout["layout"] instanceof BufferLayout.Layout &&
+    layout["discriminator"] instanceof BufferLayout.UInt;
+})();
+
+const isWrappedLayout = (() => {
+  interface WrappedLayout extends BufferLayout.Layout {
+    layout: BufferLayout.Layout;
+  }
+
+  return (layout: BufferLayout.Layout): layout is WrappedLayout =>
+    layout["layout"] instanceof BufferLayout.Layout &&
+    typeof layout["decoder"] === "function" &&
+    typeof layout["encoder"] === "function";
+})();
+
+export function layoutSize(layout: BufferLayout.Layout): number {
+  if (layout.span >= 0) {
+    return layout.span;
+  }
+
+  if (layout instanceof BufferLayout.Structure) {
+    return layout.fields.reduce((acc, field) => acc + layoutSize(field), 0);
+  } else if (layout instanceof BufferLayout.Union) {
+    let span = Object.values(layout.registry).reduce((max, variant) => {
+      const span = layoutSize(variant);
+      return span > max ? span : max;
+    }, 0);
+
+    if (layout.usesPrefixDiscriminator) {
+      span += (layout.discriminator as BufferLayout.UnionLayoutDiscriminator)
+        .layout.span;
+    }
+
+    return span;
+  } else if (layout instanceof BufferLayout.VariantLayout) {
+    return layout.layout == null ? 0 : layoutSize(layout.layout);
+  } else if (isOptionLayout(layout)) {
+    return layoutSize(layout.discriminator) + layoutSize(layout.layout);
+  } else if (isWrappedLayout(layout)) {
+    return layoutSize(layout.layout);
+  }
+
+  throw new Error("indeterminate span");
+}
 
 export function accountSize(idl: Idl, idlAccount: IdlTypeDef): number {
   if (idlAccount.type.kind === "enum") {
