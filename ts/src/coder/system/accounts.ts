@@ -16,7 +16,7 @@ export class SystemAccountsCoder<A extends string = string>
       case "nonce": {
         const buffer = Buffer.alloc(NONCE_ACCOUNT_LENGTH);
         const len = NONCE_ACCOUNT_LAYOUT.encode(account as any, buffer);
-        return buffer.slice(0, len);
+        return buffer.subarray(0, len);
       }
       default: {
         throw new Error(`Invalid account name: ${accountName}`);

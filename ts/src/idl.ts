@@ -194,7 +194,7 @@ export function decodeIdlAccount(data: Buffer): IdlProgramAccount {
 }
 
 export function encodeIdlAccount(acc: IdlProgramAccount): Buffer {
-  const buffer = Buffer.alloc(1000); // TODO: use a tighter buffer.
+  const buffer = Buffer.alloc(32 + 4 + acc.data.length);
   const len = IDL_ACCOUNT_LAYOUT.encode(acc, buffer);
-  return buffer.slice(0, len);
+  return buffer.subarray(0, len);
 }

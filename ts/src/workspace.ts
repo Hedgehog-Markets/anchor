@@ -1,4 +1,4 @@
-import { camelCase, pascalCase } from "@juici/case";
+import { pascalCase } from "@juici/case";
 import * as toml from "toml";
 import { PublicKey } from "@solana/web3.js";
 import { Program } from "./program/index.js";

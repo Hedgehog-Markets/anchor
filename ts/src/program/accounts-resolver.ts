@@ -6,7 +6,11 @@ import { TOKEN_PROGRAM_ID, ASSOCIATED_PROGRAM_ID } from "../utils/token.js";
 import { AllInstructions } from "./namespace/types.js";
 import Provider from "../provider.js";
 import { AccountNamespace } from "./namespace/account.js";
-import { coder } from "../spl/token";
+
+import { IDL as SPL_IDL } from "../spl/token/idl";
+import { SplTokenCoder } from "../coder/spl-token";
+
+const splCoder = new SplTokenCoder(SPL_IDL);
 
 // Populates a given accounts context with PDAs and common missing accounts.
 export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
@@ -230,7 +234,6 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
 export class AccountStore<IDL extends Idl> {
   private _cache = new Map<string, any>();
 
-  // todo: don't use the progrma use the account namespace.
   constructor(
     private _provider: Provider,
     private _accounts: AccountNamespace<IDL>
@@ -249,7 +252,7 @@ export class AccountStore<IDL extends Idl> {
         if (accountInfo === null) {
           throw new Error(`invalid account info for ${address}`);
         }
-        const data = coder().accounts.decode("token", accountInfo.data);
+        const data = splCoder.accounts.decode("token", accountInfo.data);
         this._cache.set(address, data);
       } else {
         const account = this._accounts[camelCase(name)].fetch(publicKey);

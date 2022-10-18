@@ -385,7 +385,6 @@ function sentenceCase(field: string): string {
 // Not technically sighash, since we don't include the arguments, as Rust
 // doesn't allow function overloading.
 function sighash(nameSpace: string, ixName: string): Buffer {
-  let name = snakeCase(ixName);
-  let preimage = `${nameSpace}:${name}`;
-  return Buffer.from(sha256.digest(preimage)).subarray(0, 8);
+  const digest = sha256.digest(`${nameSpace}:${snakeCase(ixName)}`);
+  return Buffer.from(digest).subarray(0, 8);
 }

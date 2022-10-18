@@ -15,7 +15,7 @@ import { isBrowser } from "./utils/common.js";
 import {
   simulateTransaction,
   SuccessfulTxSimulationResponse,
-} from "./utils/rpc.js";
+} from "./utils/simulate";
 import { Wallet as NodeWallet } from "./wallet";
 
 export default interface Provider {
@@ -234,6 +234,7 @@ export class AnchorProvider implements Provider {
     ).blockhash;
 
     tx = await this.wallet.signTransaction(tx);
+
     const result = await simulateTransaction(
       this.connection,
       tx,

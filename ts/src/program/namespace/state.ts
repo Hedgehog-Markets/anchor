@@ -177,7 +177,7 @@ export class StateClient<IDL extends Idl> {
       throw new Error("State is not specified in IDL.");
     }
     const expectedDiscriminator = await stateDiscriminator(state.struct.name);
-    if (expectedDiscriminator.compare(accountInfo.data.slice(0, 8))) {
+    if (expectedDiscriminator.compare(accountInfo.data.subarray(0, 8))) {
       throw new Error("Invalid account discriminator");
     }
     return this.coder.state.decode(accountInfo.data);

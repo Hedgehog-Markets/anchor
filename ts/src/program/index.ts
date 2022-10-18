@@ -3,7 +3,8 @@ import { PublicKey } from "@solana/web3.js";
 import Provider, { getProvider } from "../provider.js";
 import { Idl, idlAddress, decodeIdlAccount } from "../idl.js";
 import { Coder, BorshCoder } from "../coder/index.js";
-import NamespaceFactory, {
+import NamespaceFactory from "./namespace/index.js";
+import type {
   RpcNamespace,
   InstructionNamespace,
   TransactionNamespace,
@@ -349,7 +350,7 @@ export class Program<IDL extends Idl = Idl> {
       return null;
     }
     // Chop off account discriminator.
-    let idlAccount = decodeIdlAccount(accountInfo.data.slice(8));
+    let idlAccount = decodeIdlAccount(accountInfo.data.subarray(8));
     const inflatedIdl = inflate(idlAccount.data);
     return JSON.parse(utf8.decode(inflatedIdl));
   }

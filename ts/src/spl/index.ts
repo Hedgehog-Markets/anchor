@@ -3,9 +3,9 @@ import {
   program as associatedTokenProgram,
   SplAssociatedToken,
 } from "./associated-token.js";
-import { program as tokenProgram, SplToken } from "./token.js";
+import { program as tokenProgram, SplToken } from "./token";
 
-export { SplToken } from "./token.js";
+export { SplToken } from "./token";
 
 export class Spl {
   public static token(provider?: Provider): Program<SplToken> {

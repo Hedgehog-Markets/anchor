@@ -55,7 +55,7 @@ describe("program/common", () => {
     });
   });
 
-  describe("NodeWallet", () => {
+  describe("Wallet", () => {
     it("should throw an error when ANCHOR_WALLET is unset", () => {
       const oldValue = process.env.ANCHOR_WALLET;
       delete process.env.ANCHOR_WALLET;

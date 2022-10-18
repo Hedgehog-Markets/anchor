@@ -1,6 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
 import Provider from "../../provider.js";
-import { SuccessfulTxSimulationResponse } from "src/utils/rpc.js";
 import { splitArgsAndCtx } from "../context.js";
 import { TransactionFn } from "./transaction.js";
 import { EventParser, Event } from "../event.js";
@@ -13,6 +12,8 @@ import {
   InstructionContextFn,
   MakeInstructionsNamespace,
 } from "./types";
+
+import type { SuccessfulTxSimulationResponse } from "../../utils/rpc";
 
 export default class SimulateFactory {
   public static build<IDL extends Idl, I extends AllInstructions<IDL>>(

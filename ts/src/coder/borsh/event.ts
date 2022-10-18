@@ -50,14 +50,14 @@ export class BorshEventCoder implements EventCoder {
   public decode<E extends IdlEvent = IdlEvent, T = Record<string, never>>(
     log: string
   ): Event<E, T> | null {
-    let logArr: Buffer;
+    let logArr: Uint8Array;
     // This will throw if log length is not a multiple of 4.
     try {
-      logArr = Buffer.from(base64.toByteArray(log));
+      logArr = base64.toByteArray(log);
     } catch (e) {
       return null;
     }
-    const disc = base64.fromByteArray(logArr.slice(0, 8));
+    const disc = base64.fromByteArray(logArr.subarray(0, 8));
 
     // Only deserialize if the discriminator implies a proper event.
     const eventName = this.discriminators.get(disc);
@@ -69,7 +69,7 @@ export class BorshEventCoder implements EventCoder {
     if (!layout) {
       throw new Error(`Unknown event: ${eventName}`);
     }
-    const data = layout.decode(logArr.slice(8)) as EventData<
+    const data = layout.decode(logArr.subarray(8)) as EventData<
       E["fields"][number],
       T
     >;
@@ -78,5 +78,5 @@ export class BorshEventCoder implements EventCoder {
 }
 
 export function eventDiscriminator(name: string): Buffer {
-  return Buffer.from(sha256.digest(`event:${name}`)).slice(0, 8);
+  return Buffer.from(sha256.digest(`event:${name}`)).subarray(0, 8);
 }

@@ -4,6 +4,7 @@ import * as borsh from "@project-serum/borsh";
 import { camelCase } from "@juici/case";
 import { Idl } from "../../idl.js";
 import { InstructionCoder } from "../index.js";
+import { utf8 } from "../../utils/bytes/index.js";
 
 export class SystemInstructionCoder implements InstructionCoder {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -92,11 +93,7 @@ class RustStringLayout extends BufferLayout.Layout<string | null> {
 
   decode(b: Buffer, offset = 0): string | null {
     const { chars } = this.layout.decode(b, offset);
-    return Buffer.from(
-      chars.buffer,
-      chars.byteOffset,
-      chars.byteLength
-    ).toString("utf-8");
+    return utf8.decode(chars);
   }
 
   getSpan(b: Buffer, offset = 0): number {
