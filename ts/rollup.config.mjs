@@ -31,7 +31,9 @@ export default {
     }),
     typescript({
       tsconfig: "./tsconfig.base.json",
+      outDir: "types",
       sourceMap: true,
+      outputToFilesystem: false,
     }),
     replace({
       preventAssignment: true,

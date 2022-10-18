@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "es2019",
 
+    "composite": true,
     "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
 
     "noImplicitAny": false,
     "strictNullChecks": true,
