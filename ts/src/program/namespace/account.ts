@@ -1,4 +1,4 @@
-import { camelCase } from "@juici/case";
+import { CamelCase, camelCase } from "@juici/case";
 import EventEmitter from "eventemitter3";
 import {
   Signer,
@@ -62,7 +62,9 @@ export default class AccountFactory {
  * For the full API, see the [[AccountClient]] reference.
  */
 export type AccountNamespace<IDL extends Idl = Idl> = {
-  [K in NonNullable<IDL["accounts"]>[number]["name"]]: AccountClient<
+  [K in NonNullable<
+    IDL["accounts"]
+  >[number]["name"] as CamelCase<K>]: AccountClient<
     IDL,
     NonNullable<IDL["accounts"]>[number] & { name: K }
   >;
