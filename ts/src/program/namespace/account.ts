@@ -61,15 +61,12 @@ export default class AccountFactory {
  *
  * For the full API, see the [[AccountClient]] reference.
  */
-export type AccountNamespace<IDL extends Idl = Idl> =
-  IDL["accounts"] extends IdlAccountDef[]
-    ? {
-        [M in IDL["accounts"][number]["name"]]: AccountClient<
-          IDL,
-          IDL["accounts"][number] & { name: M }
-        >;
-      }
-    : never;
+export type AccountNamespace<IDL extends Idl = Idl> = {
+  [K in NonNullable<IDL["accounts"]>[number]["name"]]: AccountClient<
+    IDL,
+    NonNullable<IDL["accounts"]>[number] & { name: K }
+  >;
+};
 
 export class AccountClient<
   IDL extends Idl = Idl,
