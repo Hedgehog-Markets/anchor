@@ -1,4 +1,4 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { SendTransactionError, Transaction } from "@solana/web3.js";
 
 import type {
   Commitment,
@@ -8,6 +8,32 @@ import type {
   Signer,
   SimulatedTransactionResponse,
 } from "@solana/web3.js";
+import {
+  type as pick,
+  number,
+  string,
+  array,
+  boolean,
+  literal,
+  union,
+  optional,
+  nullable,
+  coerce,
+  create,
+  unknown,
+  any,
+  Struct,
+} from "superstruct";
+
+declare module "@solana/web3.js" {
+  interface Transaction {
+    _compile(): Message;
+    _serialize(signData: Buffer): Buffer;
+  }
+  interface Connection {
+    _rpcRequest(method: string, args: Array<unknown>): Promise<unknown>;
+  }
+}
 
 // copy from @solana/web3.js that has a commitment param
 export async function simulateTransaction(
@@ -27,31 +53,17 @@ export async function simulateTransaction(
     tx.sign(...signers);
   }
 
-  const message = tx.compileMessage();
-  const signedKeys = message.accountKeys.slice(
-    0,
-    message.header.numRequiredSignatures
-  );
+  const message = transaction._compile();
+  const signData = message.serialize();
+  const wireTransaction = transaction._serialize(signData);
+  const encodedTransaction = wireTransaction.toString("base64");
+  const config: Record<string, unknown> = {
+    encoding: "base64",
+    commitment: commitment ?? connection.commitment,
+  };
 
-  let signatures: Uint8Array[] | undefined = [];
-  if (tx.signatures.length === signedKeys.length) {
-    let i = 0;
-    for (const { publicKey, signature } of tx.signatures) {
-      if (signedKeys[i].equals(publicKey) && signature) {
-        signatures.push(signature);
-        i++;
-      } else {
-        signatures = undefined;
-        break;
-      }
-    }
-  }
-
-  const vtx = new VersionedTransaction(message, signatures);
-
-  let accounts: { encoding: "base64"; addresses: string[] } | undefined;
   if (includeAccounts) {
-    accounts = {
+    config.accounts = {
       encoding: "base64",
       addresses: (Array.isArray(includeAccounts)
         ? includeAccounts
@@ -60,12 +72,103 @@ export async function simulateTransaction(
     };
   }
 
-  return connection.simulateTransaction(vtx, {
-    commitment,
-    accounts,
-    sigVerify: !!signers,
+  if (signers) {
+    config.sigVerify = true;
+  }
+
+  const args = [encodedTransaction, config];
+  const unsafeRes = await connection._rpcRequest("simulateTransaction", args);
+  const res = create(unsafeRes, SimulatedTransactionResponseStruct);
+
+  if ("error" in res) {
+    let logs: Array<string> | undefined;
+    if (
+      "data" in res.error &&
+      "logs" in res.error.data &&
+      Array.isArray(res.error.data.logs)
+    ) {
+      logs = res.error.data.logs;
+    }
+    throw new SendTransactionError(
+      `failed to simulate transaction: ${res.error.message}`,
+      logs
+    );
+  }
+  return res.result;
+}
+
+// copy from @solana/web3.js
+function jsonRpcResult<T, U>(schema: Struct<T, U>) {
+  return coerce(createRpcResult(schema), UnknownRpcResult, (value) => {
+    if ("error" in value) {
+      return value;
+    } else {
+      return {
+        ...value,
+        result: create(value.result, schema),
+      };
+    }
   });
 }
+
+// copy from @solana/web3.js
+const UnknownRpcResult = createRpcResult(unknown());
+
+// copy from @solana/web3.js
+function createRpcResult<T, U>(result: Struct<T, U>) {
+  return union([
+    pick({
+      jsonrpc: literal("2.0"),
+      id: string(),
+      result,
+    }),
+    pick({
+      jsonrpc: literal("2.0"),
+      id: string(),
+      error: pick({
+        code: unknown(),
+        message: string(),
+        data: optional(any()),
+      }),
+    }),
+  ]);
+}
+
+// copy from @solana/web3.js
+function jsonRpcResultAndContext<T, U>(value: Struct<T, U>) {
+  return jsonRpcResult(
+    pick({
+      context: pick({
+        slot: number(),
+      }),
+      value,
+    })
+  );
+}
+
+// copy from @solana/web3.js
+const SimulatedTransactionResponseStruct = jsonRpcResultAndContext(
+  pick({
+    err: nullable(union([pick({}), string()])),
+    logs: nullable(array(string())),
+    accounts: optional(
+      nullable(
+        array(
+          nullable(
+            pick({
+              executable: boolean(),
+              owner: string(),
+              lamports: number(),
+              data: array(string()),
+              rentEpoch: optional(number()),
+            })
+          )
+        )
+      )
+    ),
+    unitsConsumed: optional(number()),
+  })
+);
 
 export type SuccessfulTxSimulationResponse = Omit<
   SimulatedTransactionResponse,
