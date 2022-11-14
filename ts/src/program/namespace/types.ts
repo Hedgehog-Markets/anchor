@@ -1,10 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+import { CamelCase } from "@juici/case";
 import { Idl } from "../../";
 import {
   IdlAccountDef,
-  IdlEnumVariant,
-  IdlErrorCode,
+  IdlEnumFields,
+  IdlEnumFieldsNamed,
+  IdlEnumFieldsTuple,
   IdlField,
   IdlInstruction,
   IdlType,
@@ -14,7 +16,6 @@ import {
 } from "../../idl";
 import { Accounts, Context } from "../context";
 import { MethodsBuilder } from "./methods";
-import type { CamelCase } from "@juici/case";
 
 /**
  * All instructions for an IDL.
@@ -131,6 +132,8 @@ export type DecodeType<T extends IdlType, Defined> = T extends keyof TypeMap
   ? TypeMap[T["coption"]] | null
   : T extends { vec: keyof TypeMap }
   ? TypeMap[T["vec"]][]
+  : T extends { vec: { defined: keyof Defined } }
+  ? Defined[T["vec"]["defined"]][]
   : T extends { array: [defined: keyof TypeMap, size: number] }
   ? TypeMap[T["array"][0]][]
   : unknown;
@@ -144,124 +147,125 @@ type ArgsTuple<A extends IdlField[], Defined> = {
     : unknown;
 } & unknown[];
 
-type StructDef<I extends IdlField[], Defined> = {
-  [F in I[number]["name"]]: DecodeType<
-    (I[number] & { name: F })["type"],
+/**
+ * Flatten { a: number, b: { c: string } } into number | string
+ */
+type UnboxToUnion<T> = T extends (infer U)[]
+  ? UnboxToUnion<U>
+  : T extends Record<string, never> // empty object, eg: named enum variant without fields
+  ? "__empty_object__"
+  : T extends Record<string, infer V> // object with props, eg: struct
+  ? UnboxToUnion<V>
+  : T;
+
+/**
+ * Decode a single enum field.
+ */
+type DecodeEnumField<F, Defined> = F extends IdlType
+  ? DecodeType<F, Defined>
+  : never;
+
+/**
+ * Decode enum variant: named or tuple.
+ */
+type DecodeEnumFields<
+  F extends IdlEnumFields,
+  Defined
+> = F extends IdlEnumFieldsNamed
+  ? {
+      [F2 in F[number] as F2["name"]]: DecodeEnumField<F2["type"], Defined>;
+    }
+  : F extends IdlEnumFieldsTuple
+  ? {
+      [F3 in keyof F as Exclude<F3, keyof unknown[]>]: DecodeEnumField<
+        F[F3],
+        Defined
+      >;
+    }
+  : Record<never, never>;
+
+type DecodeEnumVariants<I extends IdlTypeDefTyEnum, Defined> = {
+  [V in I["variants"][number] as CamelCase<V["name"]>]: DecodeEnumFields<
+    NonNullable<V["fields"]>,
     Defined
   >;
 };
 
-type VariantDef<
-  T extends IdlEnumVariant,
-  Defined
-> = T["fields"] extends IdlField[]
-  ? StructDef<T["fields"], Defined>
-  : T["fields"] extends IdlType[]
-  ? unknown // TODO: Tuple enum variants are not supported yet.
-  : Record<string, never>;
-
-type XorVariantDefs<T extends Record<string, unknown>> = ValueOf<{
+type ValueOf<T> = T[keyof T];
+type XorEnumVariants<T extends Record<string, unknown>> = ValueOf<{
   [K1 in keyof T]: {
     [K2 in Exclude<keyof T, K1>]?: never;
   } & { [K2 in K1]: T[K2] };
 }>;
-type VariantDefs<I extends IdlEnumVariant[], Defined> = {
-  [K in I[number]["name"] as CamelCase<K>]: VariantDef<
-    I[number] & { name: K },
-    Defined
-  >;
-};
-type EnumDef<I extends IdlEnumVariant[], Defined> = XorVariantDefs<
-  VariantDefs<I, Defined>
+
+type DecodeEnum<I extends IdlTypeDefTyEnum, Defined> = XorEnumVariants<
+  DecodeEnumVariants<I, Defined>
 >;
+
+type DecodeStruct<I extends IdlTypeDefTyStruct, Defined> = {
+  [T in I["fields"][number] as T["name"]]: DecodeType<T["type"], Defined>;
+};
 
 export type TypeDef<
   I extends IdlTypeDef,
   Defined
-> = I["type"] extends IdlTypeDefTyStruct
-  ? StructDef<I["type"]["fields"], Defined>
-  : I["type"] extends IdlTypeDefTyEnum
-  ? EnumDef<I["type"]["variants"], Defined>
+> = I["type"] extends IdlTypeDefTyEnum
+  ? DecodeEnum<I["type"], Defined>
+  : I["type"] extends IdlTypeDefTyStruct
+  ? DecodeStruct<I["type"], Defined>
   : never;
 
-type ValueOf<T> = T[keyof T];
-type FindTypeDeps<T extends IdlType> = T extends {
-  defined: string;
-}
-  ? T["defined"]
-  : T extends { option: { defined: string } }
-  ? T["option"]["defined"]
-  : T extends { coption: { defined: string } }
-  ? T["coption"]["defined"]
-  : never;
-type FindStructDeps<I extends IdlTypeDefTyStruct> = FindTypeDeps<
-  I["fields"][number]["type"]
+type TypeDefDictionary<I extends IdlTypeDef[], Defined> = {
+  [T in I[number] as T["name"]]: TypeDef<T, Defined>;
+};
+
+type DecodedHelper<T extends IdlTypeDef[], Defined> = {
+  [D in T[number] as D["name"]]: TypeDef<D, Defined>;
+};
+
+type UnknownType = "__unkown_defined_type__";
+type EmptyDefined = Record<UnknownType, never>;
+
+type RecursiveTypes4<
+  I extends IdlTypeDef[],
+  Defined = EmptyDefined
+> = DecodedHelper<I, Defined>;
+
+type RecursiveTypes3<
+  I extends IdlTypeDef[],
+  Defined = EmptyDefined,
+  Decoded = DecodedHelper<I, Defined>
+> = UnknownType extends UnboxToUnion<Decoded>
+  ? RecursiveTypes4<I, DecodedHelper<I, Defined>>
+  : Decoded;
+
+type RecursiveTypes2<
+  I extends IdlTypeDef[],
+  Defined = EmptyDefined,
+  Decoded = DecodedHelper<I, Defined>
+> = UnknownType extends UnboxToUnion<Decoded>
+  ? RecursiveTypes3<I, DecodedHelper<I, Defined>>
+  : Decoded;
+
+type RecursiveTypes<
+  I extends IdlTypeDef[],
+  Defined = EmptyDefined,
+  Decoded = DecodedHelper<I, Defined>
+> = UnknownType extends UnboxToUnion<Decoded>
+  ? RecursiveTypes2<I, DecodedHelper<I, Defined>>
+  : Decoded;
+
+export type IdlTypes<I extends Idl> = RecursiveTypes<NonNullable<I["types"]>>;
+
+export type IdlAccounts<I extends Idl> = TypeDefDictionary<
+  NonNullable<I["accounts"]>,
+  IdlTypes<I>
 >;
-type FindEnumDeps<I extends IdlTypeDefTyEnum> = NonNullable<
-  I["variants"][number]["fields"]
-> extends infer T
-  ? T extends IdlField[]
-    ? FindTypeDeps<T[number]["type"]>
-    : T extends IdlType[]
-    ? FindTypeDeps<T[number]>
-    : never
-  : never;
-type FindUserDefinedDeps<I extends IdlTypeDef> =
-  I["type"] extends IdlTypeDefTyStruct
-    ? FindStructDeps<I["type"]>
-    : I["type"] extends IdlTypeDefTyEnum
-    ? FindEnumDeps<I["type"]>
-    : never;
-type FindUserDefined<T extends Record<string, IdlTypeDef>> = ValueOf<{
-  [K in keyof T]: FindUserDefinedDeps<T[K]>;
-}>;
-type UserDefinedDeps<T extends Record<string, IdlTypeDef>> = {
-  [K in FindUserDefined<T>]: FindUserDefinedDeps<T[K]>;
+
+export type IdlEvents<I extends Idl, Defined = IdlTypes<I>> = {
+  [E in NonNullable<I["events"]>[number] as E["name"]]: {
+    [F in E["fields"][number] as F["name"]]: DecodeType<F["type"], Defined>;
+  };
 };
 
-type UserDefinedDicionary<T extends Record<string, IdlTypeDef>, Defined> = {
-  [K in keyof Defined]: K extends keyof T
-    ? Defined[K] extends keyof T
-      ? TypeDef<
-          T[K],
-          UserDefinedDicionary<
-            T,
-            Pick<T, Defined[K]> & UserDefinedDeps<Pick<T, Defined[K]>>
-          >
-        >
-      : TypeDef<T[K], Record<string, never>>
-    : never;
-};
-type MapIdlTypeDefs<T extends IdlTypeDef[]> = {
-  [K in T[number]["name"]]: T[number] & { name: K };
-};
-
-type TypeDefDictionary<T extends IdlTypeDef[], Defined> = {
-  [K in T[number]["name"]]: TypeDef<T[number] & { name: K }, Defined>;
-};
-
-export type IdlTypes<T extends Idl> = T["types"] extends IdlTypeDef[]
-  ? TypeDefDictionary<
-      T["types"],
-      UserDefinedDicionary<
-        MapIdlTypeDefs<T["types"]>,
-        UserDefinedDeps<MapIdlTypeDefs<T["types"]>>
-      >
-    >
-  : never;
-
-export type IdlAccounts<T extends Idl> = T["accounts"] extends IdlAccountDef[]
-  ? T["types"] extends IdlTypeDef[]
-    ? TypeDefDictionary<
-        T["accounts"],
-        UserDefinedDicionary<
-          MapIdlTypeDefs<T["types"]>,
-          UserDefinedDeps<MapIdlTypeDefs<T["types"]>>
-        >
-      >
-    : never
-  : never;
-
-export type IdlErrorInfo<IDL extends Idl> = IDL["errors"] extends IdlErrorCode[]
-  ? IDL["errors"][number]
-  : never;
+export type IdlErrorInfo<I extends Idl> = NonNullable<I["errors"]>[number];
