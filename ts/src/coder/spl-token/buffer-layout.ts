@@ -3,7 +3,7 @@ import * as BufferLayout from "buffer-layout";
 import { Layout } from "buffer-layout";
 import { PublicKey } from "@solana/web3.js";
 
-export function uint64(property?: string): Layout<u64 | null> {
+export function uint64(property?: string): Layout<u64> {
   return new WrappedLayout(
     BufferLayout.blob(8),
     (b: Buffer) => u64.fromBuffer(b),
@@ -77,7 +77,7 @@ export class COptionLayout<T> extends Layout<T | null> {
       return this.layout.span + this.discriminator.encode(0, b, offset);
     }
     this.discriminator.encode(1, b, offset);
-    return this.layout.encode(src, b, offset + 4) + 4;
+    return 4 + this.layout.encode(src, b, offset + 4);
   }
 
   decode(b: Buffer, offset = 0): T | null {
@@ -113,18 +113,11 @@ export class u64 extends BN {
    * Convert to Buffer representation
    */
   toBuffer(): Buffer {
-    const a = super.toArray().reverse();
-    const b = Buffer.from(a);
-    if (b.length === 8) {
-      return b;
-    }
-    if (b.length >= 8) {
+    const buf = super.toArrayLike(Buffer, "le", 8);
+    if (buf.length >= 8) {
       throw new Error("u64 too large");
     }
-
-    const zeroPad = Buffer.alloc(8);
-    b.copy(zeroPad);
-    return zeroPad;
+    return buf;
   }
 
   /**
@@ -134,12 +127,6 @@ export class u64 extends BN {
     if (buffer.length !== 8) {
       throw new Error(`Invalid buffer length: ${buffer.length}`);
     }
-    return new u64(
-      [...buffer]
-        .reverse()
-        .map((i) => `00${i.toString(16)}`.slice(-2))
-        .join(""),
-      16
-    );
+    return new u64(buffer, "le");
   }
 }

@@ -62,36 +62,6 @@ function decodeNonceAccount<T = any>(ix: Buffer): T {
   return NONCE_ACCOUNT_LAYOUT.decode(ix) as T;
 }
 
-class WrappedLayout<T, U> extends BufferLayout.Layout<U> {
-  layout: BufferLayout.Layout<T>;
-  decoder: (data: T) => U;
-  encoder: (src: U) => T;
-
-  constructor(
-    layout: BufferLayout.Layout<T>,
-    decoder: (data: T) => U,
-    encoder: (src: U) => T,
-    property?: string
-  ) {
-    super(layout.span, property);
-    this.layout = layout;
-    this.decoder = decoder;
-    this.encoder = encoder;
-  }
-
-  decode(b: Buffer, offset?: number): U {
-    return this.decoder(this.layout.decode(b, offset));
-  }
-
-  encode(src: U, b: Buffer, offset?: number): number {
-    return this.layout.encode(this.encoder(src), b, offset);
-  }
-
-  getSpan(b: Buffer, offset?: number): number {
-    return this.layout.getSpan(b, offset);
-  }
-}
-
 const NONCE_ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.u32("version"),
   BufferLayout.u32("state"),
