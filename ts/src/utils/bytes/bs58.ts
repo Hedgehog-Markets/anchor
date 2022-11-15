@@ -5,5 +5,6 @@ export function encode(data: Buffer | number[] | Uint8Array): string {
 }
 
 export function decode(data: string): Buffer {
-  return bs58.decode(data);
+  const buf = bs58.decode(data);
+  return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
 }

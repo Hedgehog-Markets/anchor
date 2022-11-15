@@ -1,4 +1,3 @@
-import bs58 from "bs58";
 import { Buffer } from "buffer";
 import { Layout } from "buffer-layout";
 import { camelCase, pascalCase, snakeCase } from "@juici/case";
@@ -21,6 +20,7 @@ import {
 } from "../../idl.js";
 import { IdlCoder } from "./idl.js";
 import { InstructionCoder } from "../index.js";
+import { bs58 } from "../../utils/bytes/index.js";
 
 /**
  * Namespace for state method function signatures.

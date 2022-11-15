@@ -14,7 +14,12 @@ import {
   IdlStateMethod,
   IdlTypeDef,
 } from "../../idl.js";
-import { BorshCoder, Coder, stateDiscriminator } from "../../coder/index.js";
+import {
+  BorshCoder,
+  Coder,
+  StateCoder,
+  stateDiscriminator,
+} from "../../coder/index.js";
 import {
   RpcNamespace,
   InstructionNamespace,
@@ -49,12 +54,23 @@ type NullableMethods<IDL extends Idl> = IDL["state"] extends IdlState
   ? IDL["state"]["methods"]
   : IdlInstruction[];
 
+type CoderWithState = Coder & { state: StateCoder };
+
 /**
  * A client for the program state. Similar to the base [[Program]] client,
  * one can use this to send transactions and read accounts for the state
  * abstraction.
  */
 export class StateClient<IDL extends Idl> {
+  /**
+   * Returns the client's wallet and network provider.
+   */
+  readonly provider: Provider;
+  /**
+   * Returns the coder.
+   */
+  readonly coder: CoderWithState;
+
   /**
    * [[RpcNamespace]] for all state methods.
    */
@@ -79,22 +95,22 @@ export class StateClient<IDL extends Idl> {
   private _programId: PublicKey;
 
   private _address: PublicKey;
-  private _coder: Coder;
   private _idl: IDL;
   private _sub: Subscription | null;
 
   constructor(
     idl: IDL,
     programId: PublicKey,
-    /**
-     * Returns the client's wallet and network provider.
-     */
-    public readonly provider: Provider = getProvider(),
-    /**
-     * Returns the coder.
-     */
-    public readonly coder: Coder = new BorshCoder(idl)
+    provider?: Provider,
+    coder?: Coder
   ) {
+    if (!idl.state || (coder && !coder.state)) {
+      throw new Error("State is not specified in IDL.");
+    }
+
+    this.coder = (coder ?? new BorshCoder(idl)) as CoderWithState;
+    this.provider = provider ?? getProvider();
+
     this._idl = idl;
     this._programId = programId;
     this._address = programStateAddress(programId);
@@ -115,11 +131,16 @@ export class StateClient<IDL extends Idl> {
           // Build instruction method.
           const ixItem = InstructionNamespaceFactory.build<IDL, I>(
             m,
-            (ixName, ix) => coder.instruction.encodeState(ixName, ix),
+            (ixName, ix) => this.coder.instruction.encodeState(ixName, ix),
             programId
           );
           ixItem["accounts"] = (accounts) => {
-            const keys = stateInstructionKeys(programId, provider, m, accounts);
+            const keys = stateInstructionKeys(
+              programId,
+              this.provider,
+              m,
+              accounts
+            );
             return keys.concat(
               InstructionNamespaceFactory.accountsArray(
                 accounts,
@@ -135,7 +156,7 @@ export class StateClient<IDL extends Idl> {
             m,
             txItem,
             parseIdlErrors(idl),
-            provider
+            this.provider
           );
 
           // Attach them all to their respective namespaces.

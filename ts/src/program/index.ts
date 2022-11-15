@@ -350,7 +350,7 @@ export class Program<IDL extends Idl = Idl> {
       return null;
     }
     // Chop off account discriminator.
-    let idlAccount = decodeIdlAccount(accountInfo.data.subarray(8));
+    const idlAccount = decodeIdlAccount(accountInfo.data.subarray(8));
     const inflatedIdl = inflate(idlAccount.data);
     return JSON.parse(utf8.decode(inflatedIdl));
   }
