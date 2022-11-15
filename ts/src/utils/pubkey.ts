@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import { sha256 } from "js-sha256";
 import { PublicKey } from "@solana/web3.js";
 import { Address, translateAddress } from "../program/common.js";
+import { toBuffer } from "./bytes/buffer.js";
 
 // Sync version of web3.PublicKey.createWithSeed.
 export function createWithSeedSync(
@@ -80,14 +81,4 @@ export async function associated(
     translateAddress(programId)
   );
   return assoc;
-}
-
-function toBuffer(arr: Buffer | Uint8Array | Array<number>): Buffer {
-  if (arr instanceof Buffer) {
-    return arr;
-  } else if (arr instanceof Uint8Array) {
-    return Buffer.from(arr.buffer, arr.byteOffset, arr.byteLength);
-  } else {
-    return Buffer.from(arr);
-  }
 }

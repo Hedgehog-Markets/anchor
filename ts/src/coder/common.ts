@@ -79,38 +79,32 @@ export function accountSize(idl: Idl, idlAccount: IdlTypeDef): number {
     .reduce((a, b) => a + b, 0);
 }
 
-// Returns the size of the type in bytes. For variable length types, just return
-// 1. Users should override this value in such cases.
+// Returns the size of the type in bytes.
+//
+// For variable length types, just return 1.
+// Users should override this value in such cases.
 function typeSize(idl: Idl, ty: IdlType): number {
   switch (ty) {
     case "bool":
       return 1;
     case "u8":
-      return 1;
     case "i8":
       return 1;
     case "i16":
-      return 2;
     case "u16":
       return 2;
     case "u32":
-      return 4;
     case "i32":
-      return 4;
     case "f32":
       return 4;
     case "u64":
-      return 8;
     case "i64":
-      return 8;
     case "f64":
       return 8;
     case "u128":
-      return 16;
     case "i128":
       return 16;
     case "bytes":
-      return 1;
     case "string":
       return 1;
     case "publicKey":

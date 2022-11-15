@@ -132,12 +132,12 @@ export class BorshInstructionCoder implements InstructionCoder {
     if (typeof ix === "string") {
       ix = encoding === "hex" ? Buffer.from(ix, "hex") : bs58.decode(ix);
     }
-    let sighash = bs58.encode(ix.subarray(0, 8));
-    let data = ix.subarray(8);
+    const sighash = bs58.encode(ix.subarray(0, 8));
     const decoder = this.sighashLayouts.get(sighash);
     if (!decoder) {
       return null;
     }
+    const data = ix.subarray(8);
     return {
       data: decoder.layout.decode(data),
       name: decoder.name,
