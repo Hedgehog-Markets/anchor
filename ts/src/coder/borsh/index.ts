@@ -31,7 +31,7 @@ export class BorshCoder<A extends string = string, T extends string = string>
   /**
    * Coder for state structs.
    */
-  readonly state: BorshStateCoder;
+  readonly state?: BorshStateCoder | undefined;
 
   /**
    * Coder for events.

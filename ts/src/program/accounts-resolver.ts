@@ -218,7 +218,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
         bU64.writeBigUInt64LE(BigInt(value));
         return bU64;
       case "string":
-        return Buffer.from(utf8.encode(value));
+        return utf8.encode(value);
       case "publicKey":
         return value.toBuffer();
       default:

@@ -22,7 +22,7 @@ export interface Coder<A extends string = string, T extends string = string> {
   /**
    * Coder for state structs.
    */
-  readonly state: StateCoder;
+  readonly state?: StateCoder | undefined;
 
   /**
    * Coder for events.

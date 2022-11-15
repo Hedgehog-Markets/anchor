@@ -14,10 +14,11 @@ if (isBrowser) {
   decoder = new util.TextDecoder("utf-8") as TextDecoder;
 }
 
-export function decode(array: Uint8Array): string {
+export function decode(array: Buffer | Uint8Array): string {
   return decoder.decode(array);
 }
 
-export function encode(input: string): Uint8Array {
-  return encoder.encode(input);
+export function encode(input: string): Buffer {
+  const buf = encoder.encode(input);
+  return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
 }
