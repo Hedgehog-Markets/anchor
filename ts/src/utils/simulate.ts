@@ -25,6 +25,9 @@ import {
   Struct,
 } from "superstruct";
 
+/**
+ * @internal
+ */
 declare module "@solana/web3.js" {
   interface Transaction {
     _compile(): Message;
