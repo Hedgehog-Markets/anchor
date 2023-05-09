@@ -127,21 +127,21 @@ export class AccountClient<
   }
 
   /**
+   * Returns serialized account data.
+   *
+   * @param data The account to serialize.
+   */
+  async encode(account: T): Promise<Buffer> {
+    return this._coder.accounts.encode<T>(this._idlAccount.name, account);
+  }
+
+  /**
    * Returns deserialized account.
    *
    * @param data The data to deserialize.
    */
   decode(data: Buffer): T {
     return this._coder.accounts.decode<T>(this._idlAccount.name, data);
-  }
-
-  /**
-   * Returns serialized account data.
-   *
-   * @param data The account to serialize.
-   */
-  encode(account: T): Buffer {
-    return this._coder.accounts.encode<T>(this._idlAccount.name, account);
   }
 
   /**

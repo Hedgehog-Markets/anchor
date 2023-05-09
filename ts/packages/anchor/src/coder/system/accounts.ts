@@ -9,7 +9,7 @@ export class SystemAccountsCoder<A extends string = string>
 {
   constructor(private idl: Idl) {}
 
-  public encode<T = any>(accountName: A, account: T): Buffer {
+  public async encode<T = any>(accountName: A, account: T): Promise<Buffer> {
     switch (accountName) {
       case "nonce": {
         const buffer = Buffer.alloc(NONCE_ACCOUNT_LENGTH);
