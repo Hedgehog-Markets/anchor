@@ -42,7 +42,7 @@ export class BorshAccountsCoder<A extends string = string>
     this.idl = idl;
   }
 
-  public async encode<T = any>(accountName: A, account: T): Promise<Buffer> {
+  public encode<T = any>(accountName: A, account: T): Buffer {
     const buffer = Buffer.alloc(1000); // TODO: use a tighter buffer.
     const layout = this.accountLayouts.get(accountName);
     if (!layout) {

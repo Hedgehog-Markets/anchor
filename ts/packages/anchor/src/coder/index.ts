@@ -35,7 +35,7 @@ export interface StateCoder {
 }
 
 export interface AccountsCoder<A extends string = string> {
-  encode<T = any>(accountName: A, account: T): Promise<Buffer>;
+  encode<T = any>(accountName: A, account: T): Buffer;
   decode<T = any>(accountName: A, ix: Buffer): T;
   decodeUnchecked<T = any>(accountName: A, ix: Buffer): T;
   memcmp(accountName: A, appendData?: Buffer): any;
