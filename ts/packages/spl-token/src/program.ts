@@ -22,7 +22,7 @@ export function splTokenProgram(params?: GetProgramParams): Program<SplToken> {
 }
 
 type SplToken = {
-  version: "3.3.0";
+  version: "3.5.0";
   name: "spl_token";
   instructions: [
     {
@@ -51,7 +51,7 @@ type SplToken = {
         {
           name: "freezeAuthority";
           type: {
-            defined: "COption<Pubkey>";
+            coption: "publicKey";
           };
         }
       ];
@@ -200,7 +200,7 @@ type SplToken = {
         {
           name: "newAuthority";
           type: {
-            defined: "COption<Pubkey>";
+            coption: "publicKey";
           };
         }
       ];
@@ -550,7 +550,7 @@ type SplToken = {
         {
           name: "freezeAuthority";
           type: {
-            defined: "COption<Pubkey>";
+            coption: "publicKey";
           };
         }
       ];
@@ -621,7 +621,7 @@ type SplToken = {
           {
             name: "mintAuthority";
             type: {
-              defined: "COption<Pubkey>";
+              coption: "publicKey";
             };
           },
           {
@@ -639,7 +639,7 @@ type SplToken = {
           {
             name: "freezeAuthority";
             type: {
-              defined: "COption<Pubkey>";
+              coption: "publicKey";
             };
           }
         ];
@@ -665,7 +665,7 @@ type SplToken = {
           {
             name: "delegate";
             type: {
-              defined: "COption<Pubkey>";
+              coption: "publicKey";
             };
           },
           {
@@ -677,7 +677,7 @@ type SplToken = {
           {
             name: "isNative";
             type: {
-              defined: "COption<u64>";
+              coption: "u64";
             };
           },
           {
@@ -687,7 +687,7 @@ type SplToken = {
           {
             name: "closeAuthority";
             type: {
-              defined: "COption<Pubkey>";
+              coption: "publicKey";
             };
           }
         ];
@@ -864,7 +864,7 @@ type SplToken = {
 };
 
 const IDL: SplToken = {
-  version: "3.3.0",
+  version: "3.5.0",
   name: "spl_token",
   instructions: [
     {
@@ -893,7 +893,7 @@ const IDL: SplToken = {
         {
           name: "freezeAuthority",
           type: {
-            defined: "COption<Pubkey>",
+            coption: "publicKey",
           },
         },
       ],
@@ -1042,7 +1042,7 @@ const IDL: SplToken = {
         {
           name: "newAuthority",
           type: {
-            defined: "COption<Pubkey>",
+            coption: "publicKey",
           },
         },
       ],
@@ -1392,7 +1392,7 @@ const IDL: SplToken = {
         {
           name: "freezeAuthority",
           type: {
-            defined: "COption<Pubkey>",
+            coption: "publicKey",
           },
         },
       ],
@@ -1463,7 +1463,7 @@ const IDL: SplToken = {
           {
             name: "mintAuthority",
             type: {
-              defined: "COption<Pubkey>",
+              coption: "publicKey",
             },
           },
           {
@@ -1481,7 +1481,7 @@ const IDL: SplToken = {
           {
             name: "freezeAuthority",
             type: {
-              defined: "COption<Pubkey>",
+              coption: "publicKey",
             },
           },
         ],
@@ -1507,7 +1507,7 @@ const IDL: SplToken = {
           {
             name: "delegate",
             type: {
-              defined: "COption<Pubkey>",
+              coption: "publicKey",
             },
           },
           {
@@ -1519,7 +1519,7 @@ const IDL: SplToken = {
           {
             name: "isNative",
             type: {
-              defined: "COption<u64>",
+              coption: "u64",
             },
           },
           {
@@ -1529,7 +1529,7 @@ const IDL: SplToken = {
           {
             name: "closeAuthority",
             type: {
-              defined: "COption<Pubkey>",
+              coption: "publicKey",
             },
           },
         ],
