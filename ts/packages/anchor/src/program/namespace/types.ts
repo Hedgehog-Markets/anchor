@@ -3,6 +3,7 @@ import BN from "bn.js";
 import { Idl } from "../../";
 import {
   IdlAccounts as IdlIdlAccounts,
+  IdlAccountDef,
   IdlAccountItem,
   IdlEnumFields,
   IdlEnumFieldsNamed,
@@ -40,13 +41,13 @@ export type AllInstructionsMap<IDL extends Idl> = InstructionMap<
  * All accounts for an IDL.
  */
 export type AllAccounts<IDL extends Idl> = IDL["accounts"] extends undefined
-  ? IdlTypeDef
+  ? IdlAccountDef
   : NonNullable<IDL["accounts"]>[number];
 
 /**
  * Returns a type of instruction name to the IdlInstruction.
  */
-export type AccountMap<I extends IdlTypeDef> = {
+export type AccountMap<I extends IdlAccountDef> = {
   [K in I["name"]]: I & { name: K };
 };
 

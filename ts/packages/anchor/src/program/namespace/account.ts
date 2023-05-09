@@ -15,7 +15,7 @@ import Provider, { getProvider } from "../../provider.js";
 import { Idl, IdlAccountDef } from "../../idl.js";
 import { Coder, BorshCoder } from "../../coder/index.js";
 import { Subscription, Address, translateAddress } from "../common.js";
-import { AllAccountsMap, IdlTypes, TypeDef } from "./types.js";
+import { AllAccounts, IdlTypes, TypeDef } from "./types.js";
 import * as pubkeyUtil from "../../utils/pubkey.js";
 import * as rpcUtil from "../../utils/rpc.js";
 
@@ -68,14 +68,12 @@ type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
  * For the full API, see the [[AccountClient]] reference.
  */
 export type AccountNamespace<IDL extends Idl = Idl> = {
-  [M in keyof AllAccountsMap<IDL>]: AccountClient<IDL>;
+  [A in AllAccounts<IDL> as A["name"]]: AccountClient<IDL, A>;
 };
 
 export class AccountClient<
   IDL extends Idl = Idl,
-  A extends NullableIdlAccount<IDL> = IDL["accounts"] extends undefined
-    ? IdlAccountDef
-    : NonNullable<IDL["accounts"]>[number],
+  A extends IdlAccountDef = IdlAccountDef,
   T = TypeDef<A, IdlTypes<IDL>>
 > {
   /**
