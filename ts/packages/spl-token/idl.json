@@ -1,5 +1,5 @@
 {
-  "version": "3.3.0",
+  "version": "3.5.0",
   "name": "spl_token",
   "instructions": [
     {
@@ -28,7 +28,7 @@
         {
           "name": "freezeAuthority",
           "type": {
-            "defined": "COption<Pubkey>"
+            "coption": "publicKey"
           }
         }
       ]
@@ -177,7 +177,7 @@
         {
           "name": "newAuthority",
           "type": {
-            "defined": "COption<Pubkey>"
+            "coption": "publicKey"
           }
         }
       ]
@@ -527,7 +527,7 @@
         {
           "name": "freezeAuthority",
           "type": {
-            "defined": "COption<Pubkey>"
+            "coption": "publicKey"
           }
         }
       ]
@@ -591,14 +591,14 @@
   ],
   "accounts": [
     {
-      "name": "Mint",
+      "name": "mint",
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "mintAuthority",
             "type": {
-              "defined": "COption<Pubkey>"
+              "coption": "publicKey"
             }
           },
           {
@@ -616,14 +616,14 @@
           {
             "name": "freezeAuthority",
             "type": {
-              "defined": "COption<Pubkey>"
+              "coption": "publicKey"
             }
           }
         ]
       }
     },
     {
-      "name": "Account",
+      "name": "account",
       "type": {
         "kind": "struct",
         "fields": [
@@ -642,7 +642,7 @@
           {
             "name": "delegate",
             "type": {
-              "defined": "COption<Pubkey>"
+              "coption": "publicKey"
             }
           },
           {
@@ -654,7 +654,7 @@
           {
             "name": "isNative",
             "type": {
-              "defined": "COption<u64>"
+              "coption": "u64"
             }
           },
           {
@@ -664,14 +664,14 @@
           {
             "name": "closeAuthority",
             "type": {
-              "defined": "COption<Pubkey>"
+              "coption": "publicKey"
             }
           }
         ]
       }
     },
     {
-      "name": "Multisig",
+      "name": "multisig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -690,10 +690,7 @@
           {
             "name": "signers",
             "type": {
-              "array": [
-                "publicKey",
-                11
-              ]
+              "array": ["publicKey", 11]
             }
           }
         ]
