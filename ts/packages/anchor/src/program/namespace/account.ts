@@ -43,10 +43,6 @@ export default class AccountFactory {
   }
 }
 
-type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
-  ? IdlAccountDef
-  : NonNullable<IDL["accounts"]>[number];
-
 /**
  * The namespace provides handles to an [[AccountClient]] object for each
  * account in a program.
